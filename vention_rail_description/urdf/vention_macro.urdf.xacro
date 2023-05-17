@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+   <xacro:macro name="vention_rail" params="
+    name
+    tf_prefix
+    use_fake_hardware:=false
+    ip_addr:=192.168.7.2
+    port:=8000
+  ">
+
+    <link name="${tf_prefix}base_link">
+      <visual>
+        <origin xyz="-1.18125 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="2.3625 0.153 0.09"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="${tf_prefix}carriage">
+      <visual>
+        <origin xyz="-0.1115 0 0.0565" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.223 0.223 0.023"/>
+        </geometry>
+      </visual>
+    </link>
+    
+    <joint name="${tf_prefix}base_to_carriage" type="prismatic">
+      <origin xyz="-0.223 0 0" rpy="0 0 3.14159"/>
+      <parent link="${tf_prefix}base_link"/>
+      <child link="${tf_prefix}carriage"/>
+      <limit effort="1000" velocity="0.197" lower="0" upper="2.1395"/>
+    </joint>
+
+    <xacro:include filename="$(find vention_rail_description)/urdf/vention_rail.ros2_control.xacro" />
+    <xacro:vention_rail_ros2_control
+      name="${name}"
+      use_fake_hardware="${use_fake_hardware}"
+      tf_prefix="${tf_prefix}"
+      ip_addr="${ip_addr}"
+      port="${port}"
+    />
+  </xacro:macro>
+
+</robot>

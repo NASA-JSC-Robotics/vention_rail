@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="$(arg name)">
+
+   <!-- robot name parameter -->
+  <xacro:arg name="name" default="vention_rail"/>
+  <xacro:arg name="tf_prefix" default="" />
+  <xacro:arg name="use_fake_hardware" default="false" />
+  <xacro:arg name="ip_addr" default="192.168.7.2" />
+  <xacro:arg name="port" default="8000" />
+
+  <xacro:include filename="$(find vention_rail_description)/urdf/vention_macro.urdf.xacro"/>
+  <xacro:vention_rail
+    name="$(arg name)"
+    tf_prefix="$(arg tf_prefix)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    ip_addr="$(arg ip_addr)"
+    port="$(arg port)"/>
+
+</robot>
