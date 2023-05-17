@@ -82,6 +82,15 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution([FindPackageShare("vention_rail_description"), "urdf", 'vention_rail.urdf.xacro']),
             " ",
+            "name:=",
+            robot_name,
+            " ",
+            "tf_prefix:=",
+            tf_prefix,
+            " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
+            " ",
             "ip_addr:=",
             ip_addr,
             " ",
@@ -92,7 +101,7 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
-    rsp = Node(
+    robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
@@ -122,33 +131,28 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager-timeout",
                 "100",],
     )
+    if use_fake_hardware == "false":
+        io_and_status_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["io_and_status_controller", "--controller-manager-timeout",
+                    "100",],
+        )
+        
+        controller_stopper = Node(
+            package='rail_e_hardware_interface',
+            executable='controller_stopper_node', 
+            name='controller_stopper_node',
+            parameters=[
+                {
+                    "consistent_controllers": [
+                        "io_and_status_controller",
+                        "joint_state_broadcaster",
+                    ]
+                },
+            ],
+        )
 
-    io_and_status_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["io_and_status_controller", "--controller-manager-timeout",
-                "100",],
-    )
-
-    robot_status_publisher = Node(
-         package='rail_e_hardware_interface',
-         executable='robot_status_publisher', 
-         name='robot_status_publisher' 
-       )
-    
-    controller_stopper = Node(
-         package='rail_e_hardware_interface',
-         executable='controller_stopper_node', 
-         name='controller_stopper_node',
-         parameters=[
-            {
-                "consistent_controllers": [
-                    "io_and_status_controller",
-                    "joint_state_broadcaster",
-                ]
-            },
-        ],
-       )
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("vention_rail_deploy"), "rviz", "view_robot.rviz"]
     )
@@ -162,14 +166,22 @@ def generate_launch_description():
         condition=IfCondition(rviz)
     )
 
-    nodes = [
-        rsp,
-        controller_manager,
-        position_trajectory_controller_spawner,
-        joint_state_broadcaster_spawner,
-        io_and_status_controller_spawner,
-        controller_stopper, 
-        rviz_node
-    ]
-
-    return LaunchDescription(nodes)
+    if use_fake_hardware == "false":
+        nodes = [
+            robot_state_publisher,
+            controller_manager,
+            position_trajectory_controller_spawner,
+            joint_state_broadcaster_spawner,
+            rviz_node,
+            io_and_status_controller_spawner,
+            controller_stopper 
+        ]
+    else:
+        nodes = [
+            robot_state_publisher,
+            controller_manager,
+            position_trajectory_controller_spawner,
+            joint_state_broadcaster_spawner,
+            rviz_node
+        ]
+    return LaunchDescription(declared_arguments + nodes)
