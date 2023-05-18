@@ -1,5 +1,5 @@
-#include "rail_e_hardware_interface/rail_e_hardware_interface.hpp"
-#include "rail_e_hardware_interface/rail_e_cxx_api.hpp"
+#include "vention_rail_hardware_interface/vention_rail_hardware_interface.hpp"
+#include "vention_rail_hardware_interface/vention_rail_cxx_api.hpp"
 
 #include <algorithm>
 #include <mutex>
@@ -19,7 +19,7 @@ const double velocity_limit = 5000.0;
 
 using namespace std;
 
-namespace rail_e_hardware_interface
+namespace vention_rail_hardware_interface
 {
     using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -216,4 +216,4 @@ namespace rail_e_hardware_interface
 
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(rail_e_hardware_interface::RailEHardwareInterface, hardware_interface::ActuatorInterface)
+PLUGINLIB_EXPORT_CLASS(vention_rail_hardware_interface::RailEHardwareInterface, hardware_interface::ActuatorInterface)

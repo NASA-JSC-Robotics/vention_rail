@@ -1,5 +1,5 @@
-#ifndef RAIL_E_CXX_API_HPP_
-#define RAIL_E_CXX_API_HPP_
+#ifndef VENTION_RAIL_CXX_API_HPP_
+#define VENTION_RAIL_CXX_API_HPP_
 
 #include <memory>
 #include <mutex>
@@ -16,7 +16,7 @@
 #include <iostream>
 #include <signal.h>
 
-namespace rail_e_hardware_interface
+namespace vention_rail_hardware_interface
 {
     void signal_callback_handler(int signum);
     double get_rail_position(int sockfd);
@@ -32,4 +32,4 @@ namespace rail_e_hardware_interface
     std::string sendHTTPMessage(const char message_fmt[], int sockfd);
 };
 
-#endif // RAIL_E_CXX_API_HPP_
+#endif // VENTION_RAIL_CXX_API_HPP_

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(rail_e_hardware_interface)
+project(vention_rail_hardware_interface)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -35,8 +35,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   )
 
 add_library(${PROJECT_NAME} SHARED
-  src/rail_e_hardware_interface.cpp
-  src/rail_e_cxx_api.cpp
+  src/vention_rail_hardware_interface.cpp
+  src/vention_rail_cxx_api.cpp
 )
 
 target_include_directories(
@@ -62,7 +62,7 @@ ament_target_dependencies(
 target_compile_definitions(${PROJECT_NAME} PRIVATE "JOINT_STATE_BROADCASTER_BUILDING_DLL")
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
-pluginlib_export_plugin_description_file(hardware_interface rail_e_hardware_interface.xml)
+pluginlib_export_plugin_description_file(hardware_interface vention_rail_hardware_interface.xml)
 
 
 install(
@@ -75,10 +75,6 @@ install(
   DESTINATION include
 )
 
-add_executable(robot_status_publisher src/robot_status_publisher.cpp src/rail_e_cxx_api.cpp)
-target_include_directories(robot_status_publisher PUBLIC include)
-ament_target_dependencies(robot_status_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
 add_executable(controller_stopper_node src/controller_stopper.cpp src/controller_stopper_node.cpp)
 target_include_directories(controller_stopper_node PUBLIC include)
 ament_target_dependencies(controller_stopper_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -88,7 +84,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  TARGETS controller_stopper_node robot_status_publisher
+  TARGETS controller_stopper_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

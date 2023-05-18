@@ -9,7 +9,7 @@
         <xacro:unless value="${use_fake_hardware}">
             <ros2_control name="${name}" type="actuator">
                 <hardware>
-                    <plugin>rail_e_hardware_interface/RailEHardwareInterface</plugin>
+                    <plugin>vention_rail_hardware_interface/RailEHardwareInterface</plugin>
                     <param name="rail_name">vention_rail</param>
                     <param name="ip_addr">${ip_addr}</param>
                     <param name="port">${port}</param>

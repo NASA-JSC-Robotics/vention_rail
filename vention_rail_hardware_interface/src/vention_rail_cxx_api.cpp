@@ -1,4 +1,4 @@
-#include "rail_e_hardware_interface/rail_e_cxx_api.hpp"
+#include "vention_rail_hardware_interface/vention_rail_cxx_api.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/macros.hpp"
 using namespace std;
@@ -7,7 +7,7 @@ bool stopped = false;
 double prev_position = 0.0;
 double curr_position = 0.0;
 
-namespace rail_e_hardware_interface
+namespace vention_rail_hardware_interface
 {    
     int port;
     string ip_addr;

@@ -1,5 +1,5 @@
-#ifndef RAIL_E_CONTROLLER_STOPPER_HPP_
-#define RAIL_E_CONTROLLER_STOPPER_HPP_
+#ifndef VENTION_RAIL_CONTROLLER_STOPPER_HPP_
+#define VENTION_RAIL_CONTROLLER_STOPPER_HPP_
 
 #include <memory>
 #include <string>
@@ -47,4 +47,4 @@ private:
     bool stop_controllers_on_startup_;
     bool robot_running_;
 };
-#endif // RAIL_E_CONTROLLER_STOPPER_HPP_
+#endif // VENTION_RAIL_CONTROLLER_STOPPER_HPP_
