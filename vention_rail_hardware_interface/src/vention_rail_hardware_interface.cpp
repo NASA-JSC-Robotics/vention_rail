@@ -14,8 +14,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/macros.hpp"
 
+// Velocity controller proportional gain
 const double Kp = 500;
-const double velocity_limit = 5000.0;
 
 using namespace std;
 
@@ -38,7 +38,8 @@ namespace vention_rail_hardware_interface
         system_info = info_;
         ip_addr = system_info.hardware_parameters["ip_addr"];
         port = stoi(system_info.hardware_parameters["port"]);
-
+        position_limit = stof(system_info.hardware_parameters["position_limit"]);
+        velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]) * 1000.0; // Conversion from Meters to mm
         return CallbackReturn::SUCCESS;
     }
 
@@ -190,8 +191,8 @@ namespace vention_rail_hardware_interface
     hardware_interface::return_type RailEHardwareInterface::write(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         int sockfd = connect_to_rail(ip_addr, port);
-
-        double velocity = clamp(Kp * (hw_commands_positions_[0] - hw_states_positions_[0]), -velocity_limit, velocity_limit);
+        double position_cmd = clamp(hw_commands_positions_[0], 0.0, position_limit);
+        double velocity = clamp(Kp * (position_cmd - hw_states_positions_[0]), -velocity_limit, velocity_limit);
         string vel_cmd_str = create_velocity_command(velocity);
         string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
         if (response.find("error") != string::npos)

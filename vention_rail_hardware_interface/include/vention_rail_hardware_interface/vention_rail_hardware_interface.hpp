@@ -56,6 +56,8 @@ namespace vention_rail_hardware_interface
         hardware_interface::HardwareInfo system_info;
         std::string ip_addr;
         int port;
+        double position_limit;
+        double velocity_limit;
     };
 }
 

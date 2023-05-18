@@ -8,7 +8,8 @@
     use_fake_hardware:=false
     ip_addr:=192.168.7.2
     port:=8000
-  ">
+    position_limit:=2.0
+    velocity_limit:=0.5">
 
     <link name="${tf_prefix}base_link">
       <visual>

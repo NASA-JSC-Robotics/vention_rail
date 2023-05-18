@@ -59,6 +59,20 @@ def generate_launch_description():
             description="Port number for Vention Rail",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "position_limit",
+            default_value="2.0",
+            description="Maximium height in meters for the lift",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "velocity_limit",
+            default_value="0.5",
+            description="Maximium velocity in meters/s for the rail",
+        )
+    )
 
     # other args
     declared_arguments.append(
@@ -74,7 +88,8 @@ def generate_launch_description():
     ip_addr = LaunchConfiguration("ip_addr")
     port = LaunchConfiguration("port")
     rviz = LaunchConfiguration("rviz")
-
+    position_limit = LaunchConfiguration("position_limit")
+    velocity_limit = LaunchConfiguration("velocity_limit")
 
     robot_description_content = Command(
         [
@@ -96,6 +111,12 @@ def generate_launch_description():
             " ",
             "port:=",
             port,
+            " ",
+            "position_limit:=",
+            position_limit,
+            " ",
+            "velocity_limit:=",
+            velocity_limit,
             " ",
         ]
     )
@@ -131,27 +152,6 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager-timeout",
                 "100",],
     )
-    if use_fake_hardware == "false":
-        io_and_status_controller_spawner = Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["io_and_status_controller", "--controller-manager-timeout",
-                    "100",],
-        )
-        
-        controller_stopper = Node(
-            package='rail_e_hardware_interface',
-            executable='controller_stopper_node', 
-            name='controller_stopper_node',
-            parameters=[
-                {
-                    "consistent_controllers": [
-                        "io_and_status_controller",
-                        "joint_state_broadcaster",
-                    ]
-                },
-            ],
-        )
 
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("vention_rail_deploy"), "rviz", "view_robot.rviz"]
@@ -167,6 +167,27 @@ def generate_launch_description():
     )
 
     if use_fake_hardware == "false":
+        io_and_status_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["io_and_status_controller", "--controller-manager-timeout",
+                    "100",],
+        )
+        
+        controller_stopper = Node(
+            package='vention_rail_hardware_interface',
+            executable='controller_stopper_node', 
+            name='controller_stopper_node',
+            parameters=[
+                {
+                    "consistent_controllers": [
+                        "io_and_status_controller",
+                        "joint_state_broadcaster",
+                    ]
+                },
+            ],
+        )
+
         nodes = [
             robot_state_publisher,
             controller_manager,

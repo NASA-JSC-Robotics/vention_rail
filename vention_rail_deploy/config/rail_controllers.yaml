@@ -9,7 +9,7 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
     # io_and_status_controller:
-    #   type: rail_e_controllers/EstopController 
+    #   type: vention_rail_controllers/EstopController 
 
 position_trajectory_controller:
   ros__parameters:
@@ -23,7 +23,7 @@ position_trajectory_controller:
       - position
       - velocity
 
-    state_publish_rate: 20.0
+    state_publish_rate: 50.0
     action_monitor_rate: 20.0
 
     allow_partial_joints_goal: false

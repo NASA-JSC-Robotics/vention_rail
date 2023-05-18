@@ -45,6 +45,20 @@ def generate_launch_description():
             description="Port number for Vention Rail",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "position_limit",
+            default_value="2.0",
+            description="Maximium position in meters for the rail",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "velocity_limit",
+            default_value="0.5",
+            description="Maximium velocity in meters/s for the rail",
+        )
+    )
 
     # other args
     declared_arguments.append(
@@ -60,6 +74,8 @@ def generate_launch_description():
     ip_addr = LaunchConfiguration("ip_addr")
     port = LaunchConfiguration("port")
     rviz = LaunchConfiguration("rviz")
+    position_limit = LaunchConfiguration("position_limit")
+    velocity_limit = LaunchConfiguration("velocity_limit")
 
     robot_description_content = Command(
         [
@@ -81,6 +97,12 @@ def generate_launch_description():
             " ",
             "port:=",
             port,
+            " ",
+            "position_limit:=",
+            position_limit,
+            " ",
+            "velocity_limit:=",
+            velocity_limit,
             " ",
         ]
     )

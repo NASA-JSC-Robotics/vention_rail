@@ -7,6 +7,8 @@
   <xacro:arg name="use_fake_hardware" default="false" />
   <xacro:arg name="ip_addr" default="192.168.7.2" />
   <xacro:arg name="port" default="8000" />
+  <xacro:arg name="position_limit" default="2.0" />
+  <xacro:arg name="velocity_limit" default="0.5" />
 
   <xacro:include filename="$(find vention_rail_description)/urdf/vention_macro.urdf.xacro"/>
   <xacro:vention_rail
@@ -14,6 +16,8 @@
     tf_prefix="$(arg tf_prefix)"
     use_fake_hardware="$(arg use_fake_hardware)"
     ip_addr="$(arg ip_addr)"
-    port="$(arg port)"/>
+    port="$(arg port)"
+    position_limit="$(arg position_limit)"
+    velocity_limit="$(arg velocity_limit)"/>
 
 </robot>
