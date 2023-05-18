@@ -191,6 +191,13 @@ namespace vention_rail_hardware_interface
     hardware_interface::return_type RailEHardwareInterface::write(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         int sockfd = connect_to_rail(ip_addr, port);
+        static bool warned_ = false;
+        if (hw_commands_positions_[0] > position_limit && !warned_) {
+            RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"), "Commanded Position was greater than position limit! Position being clamped.");
+            warned_ = true;
+        } else if (hw_commands_positions_[0] <= position_limit && warned_) {
+            warned_ = false;
+        }
         double position_cmd = clamp(hw_commands_positions_[0], 0.0, position_limit);
         double velocity = clamp(Kp * (position_cmd - hw_states_positions_[0]), -velocity_limit, velocity_limit);
         string vel_cmd_str = create_velocity_command(velocity);
