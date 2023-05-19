@@ -11,13 +11,8 @@ int main(int argc, char **argv)
     bool joint_controller_active = node->declare_parameter<bool>("joint_controller_active", true);
     node->get_parameter<bool>("joint_controller_active", joint_controller_active);
 
-    // If headless mode is not active, but the joint controllers are we should stop the joint controllers during startup
-    // of the node
+  
     bool stop_controllers_on_startup = false;
-    if (joint_controller_active == true && headless_mode == false)
-    {
-        stop_controllers_on_startup = true;
-    }
 
     ControllerStopper stopper(node, stop_controllers_on_startup);
 
