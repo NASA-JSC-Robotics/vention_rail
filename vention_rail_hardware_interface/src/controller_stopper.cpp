@@ -139,16 +139,16 @@ void ControllerStopper::startControllers()
 
 void ControllerStopper::robotRunningCallback(const std_msgs::msg::Bool::ConstSharedPtr msg)
 {
-    RCLCPP_INFO(rclcpp::get_logger("Controller stopper"), "robotRunningCallback with data %d", msg->data);
+    RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "robotRunningCallback with data %d", msg->data);
 
     if (msg->data && !robot_running_)
     {
-        RCLCPP_INFO(rclcpp::get_logger("Controller stopper"), "Starting controllers");
+        RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "Starting controllers");
         startControllers();
     }
     else if (!msg->data && robot_running_)
     {
-        RCLCPP_INFO(rclcpp::get_logger("Controller stopper"), "Stopping controllers");
+        RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "Stopping controllers");
         // stop all controllers except the once in consistent_controllers_
         findAndStopControllers();
     }
