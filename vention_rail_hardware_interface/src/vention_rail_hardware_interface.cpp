@@ -172,8 +172,9 @@ namespace vention_rail_hardware_interface
     hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         int sockfd = connect_to_rail(ip_addr, port);
+        double previous_position_ = hw_states_positions_[0];
         hw_states_positions_[0] = get_rail_position(sockfd);
-        hw_states_velocities_[0] = get_rail_velocity(period.seconds());
+        hw_states_velocities_[0] = (hw_states_positions_[0] - previous_position_) / period.seconds();
         hw_states_robot_ready_[0] = double(!is_stopped());
 
         RCLCPP_DEBUG(
