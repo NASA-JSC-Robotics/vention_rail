@@ -18,7 +18,7 @@
                     <param name="position_limit">${position_limit}</param>
                     <param name="velocity_limit">${velocity_limit}</param>
                 </hardware>
-                <joint name="${tf_prefix}base_to_carriage">
+                <joint name="${tf_prefix}vention_rail_base_to_carriage">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
@@ -32,7 +32,7 @@
                 <hardware>
                     <plugin>mock_components/GenericSystem</plugin>
                 </hardware>
-                <joint name="${tf_prefix}base_to_carriage">
+                <joint name="${tf_prefix}vention_rail_base_to_carriage">
                 <command_interface name="position">
                     <param name="min">0</param>
                     <param name="max">2.0</param>

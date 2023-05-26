@@ -23,7 +23,7 @@ namespace vention_rail_controllers
     controller_interface::InterfaceConfiguration config;
     config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-    config.names.emplace_back("base_to_carriage/robot_ready");
+    config.names.emplace_back("vention_rail_base_to_carriage/robot_ready");
 
     return config;
   }

@@ -14,7 +14,7 @@ controller_manager:
 position_trajectory_controller:
   ros__parameters:
     joints:
-      - base_to_carriage
+      - vention_rail_base_to_carriage
 
     command_interfaces:
       - position
@@ -28,9 +28,3 @@ position_trajectory_controller:
 
     allow_partial_joints_goal: false
     open_loop_control: false
-    # constraints:
-    #   stopped_velocity_tolerance: 0.01
-    #   goal_time: 0.0
-    #   base_to_carriage:
-    #     trajectory: 0.05
-    #     goal: 0.03

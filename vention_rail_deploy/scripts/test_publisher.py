@@ -25,7 +25,7 @@ class MinimalPublisher(Node):
 
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = ''
-        msg.joint_names = ['base_to_carriage']
+        msg.joint_names = ['vention_rail_base_to_carriage']
 
         point = JointTrajectoryPoint()
         j1 = self.desired_position

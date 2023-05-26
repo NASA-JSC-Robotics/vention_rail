@@ -11,30 +11,36 @@
     position_limit:=2.0
     velocity_limit:=0.5">
 
-    <link name="${tf_prefix}base_link">
+    <link name="${tf_prefix}vention_rail_base_link">
       <visual>
         <origin xyz="-1.18125 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="2.3625 0.153 0.09"/>
+          <!-- <box size="2.3625 0.153 0.09"/> -->
+          <mesh filename="file://$(find vention_rail_description)/meshes/base.dae"/>
         </geometry>
       </visual>
     </link>
 
-    <link name="${tf_prefix}carriage">
+    <link name="${tf_prefix}vention_rail_carriage">
       <visual>
-        <origin xyz="-0.1115 0 0.0565" rpy="0 0 0"/>
+        <origin xyz="-0.1115 0 0.39115" rpy="0 0 0"/>
         <geometry>
           <box size="0.223 0.223 0.023"/>
+          <!-- <mesh filename="file://$(find vention_rail_description)/meshes/carriage.dae"/> -->
         </geometry>
+        <material name="grey">
+          <color rgba="0.7 0.7 0.7 1"/>
+        </material>
       </visual>
     </link>
     
-    <joint name="${tf_prefix}base_to_carriage" type="prismatic">
+    <joint name="${tf_prefix}vention_rail_base_to_carriage" type="prismatic">
       <origin xyz="-0.223 0 0" rpy="0 0 3.14159"/>
-      <parent link="${tf_prefix}base_link"/>
-      <child link="${tf_prefix}carriage"/>
-      <limit effort="1000" velocity="0.197" lower="0" upper="2.1395"/>
+      <parent link="${tf_prefix}vention_rail_base_link"/>
+      <child link="${tf_prefix}vention_rail_carriage"/>
+      <limit effort="1000" velocity="${velocity_limit}" lower="0" upper="${position_limit}"/>
     </joint>
+
 
     <xacro:include filename="$(find vention_rail_description)/urdf/vention_rail.ros2_control.xacro" />
     <xacro:vention_rail_ros2_control
