@@ -60,7 +60,9 @@ namespace vention_rail_hardware_interface
         // Make sure we are not moving
         sendHTTPMessage(stop_all_motion().c_str(), sockfd);
         close_connection_to_rail(sockfd);
-
+        run_ = false;
+        read_thread_.join();
+        write_thread_.join();
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
         return CallbackReturn::SUCCESS;
     }
@@ -155,6 +157,9 @@ namespace vention_rail_hardware_interface
         sockfd = connect_to_rail(ip_addr, port);
         sendHTTPMessage(stop_all_motion().c_str(), sockfd);
         close_connection_to_rail(sockfd);
+        read_thread_ = thread(&RailEHardwareInterface::readLoop, this); 
+        write_thread_ = thread(&RailEHardwareInterface::writeLoop, this); 
+        run_ = true;
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
     }
@@ -165,15 +170,22 @@ namespace vention_rail_hardware_interface
         // Make sure we are not moving
         sendHTTPMessage(stop_all_motion().c_str(), sockfd);
         close_connection_to_rail(sockfd);
+        run_ = false;
+        read_thread_.join();
+        write_thread_.join();
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully deactivated!");
         return CallbackReturn::SUCCESS;
     }
 
     hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
-        int sockfd = connect_to_rail(ip_addr, port);
+        // int sockfd = connect_to_rail(ip_addr, port);
         double previous_position_ = hw_states_positions_[0];
-        hw_states_positions_[0] = get_rail_position(sockfd);
+        // hw_states_positions_[0] = get_rail_position(sockfd);
+        {
+            std::lock_guard<std::mutex> lock(read_m_);
+            hw_states_positions_[0] = curr_position_;
+        }
         hw_states_velocities_[0] = (hw_states_positions_[0] - previous_position_) / period.seconds();
         hw_states_robot_ready_[0] = double(!is_stopped());
 
@@ -185,13 +197,11 @@ namespace vention_rail_hardware_interface
             rclcpp::get_logger("RailEHardwareInterface"),
             "Reading velocities: %f",
             hw_states_velocities_[0]);
-        close_connection_to_rail(sockfd);
         return hardware_interface::return_type::OK;
     }
 
     hardware_interface::return_type RailEHardwareInterface::write(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
-        int sockfd = connect_to_rail(ip_addr, port);
         static bool warned_ = false;
         if (hw_commands_positions_[0] > position_limit && !warned_) {
             RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"), "Commanded Position was greater than position limit! Position being clamped.");
@@ -199,27 +209,53 @@ namespace vention_rail_hardware_interface
         } else if (hw_commands_positions_[0] <= position_limit && warned_) {
             warned_ = false;
         }
-        double position_cmd = clamp(hw_commands_positions_[0], 0.0, position_limit);
-        double velocity = clamp(Kp * (position_cmd - hw_states_positions_[0]), -velocity_limit, velocity_limit);
-        string vel_cmd_str = create_velocity_command(velocity);
-        string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
-        if (response.find("error") != string::npos)
         {
-            sendHTTPMessage(stop_all_motion().c_str(), sockfd);
-            RCLCPP_FATAL(
-                rclcpp::get_logger("RailEHardwareInterface"),
-                "Error sending velocity command, Check E-Stop Status!");
-            hw_commands_positions_[0] = hw_states_positions_[0];
+            std::lock_guard<std::mutex> lock(write_m_);
+            position_cmd_ = clamp(hw_commands_positions_[0], 0.0, position_limit);
         }
-        else if (is_stopped())
-        {
-            reset_estop();
-        }
-
-        close_connection_to_rail(sockfd);
-        RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Writing %f", velocity);
 
         return hardware_interface::return_type::OK;
+    }
+
+    void RailEHardwareInterface::readLoop(){
+        while(run_){
+            int sockfd = connect_to_rail(ip_addr, port);
+            double curr_position_api = get_rail_position(sockfd);
+            {
+                std::lock_guard<std::mutex> lock(read_m_);
+                curr_position_ = curr_position_api;
+            }
+            close_connection_to_rail(sockfd);
+            usleep(10);
+        }
+    }
+
+    void RailEHardwareInterface::writeLoop(){
+        while(run_){
+            int sockfd = connect_to_rail(ip_addr, port);
+            double velocity;
+            {
+                std::lock_guard<std::mutex> lock(write_m_);
+                velocity = clamp(Kp * (position_cmd_ - hw_states_positions_[0]), -velocity_limit, velocity_limit);
+            }
+            string vel_cmd_str = create_velocity_command(velocity);
+            string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
+            if (response.find("error") != string::npos)
+            {
+                sendHTTPMessage(stop_all_motion().c_str(), sockfd);
+                RCLCPP_FATAL(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Error sending velocity command, Check E-Stop Status!");
+                hw_commands_positions_[0] = hw_states_positions_[0];
+            }
+            else if (is_stopped())
+            {
+                reset_estop();
+            }
+
+            close_connection_to_rail(sockfd);
+            usleep(10);
+        }
     }
 }
 

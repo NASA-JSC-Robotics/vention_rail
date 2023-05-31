@@ -1,6 +1,10 @@
 #ifndef VENTION_RAIL_HARDWARE_INTERFACE__VENTION_RAIL_HARDWARE_INTERFACE_HPP_
 #define VENTION_RAIL_HARDWARE_INTERFACE__VENTION_RAIL_HARDWARE_INTERFACE_HPP_
 
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <iostream>
 #include "hardware_interface/actuator_interface.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
@@ -8,6 +12,10 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/time.hpp"
 #include "visibility_control.h"
+
+
+
+
 
 namespace vention_rail_hardware_interface
 {
@@ -58,6 +66,16 @@ namespace vention_rail_hardware_interface
         int port;
         double position_limit;
         double velocity_limit;
+        double curr_position_;
+        double position_cmd_;
+        bool run_;
+        std::thread read_thread_;
+        std::thread write_thread_;
+        std::mutex read_m_;
+        std::mutex write_m_;
+        void readLoop();
+        void writeLoop();
+
     };
 }
 
