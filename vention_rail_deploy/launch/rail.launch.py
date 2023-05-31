@@ -167,10 +167,10 @@ def generate_launch_description():
     )
 
     if use_fake_hardware == "false":
-        io_and_status_controller_spawner = Node(
+        estop_controller_spawner = Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["io_and_status_controller", "--controller-manager-timeout",
+            arguments=["estop_controller", "--controller-manager-timeout",
                     "100",],
         )
         
@@ -181,7 +181,7 @@ def generate_launch_description():
             parameters=[
                 {
                     "consistent_controllers": [
-                        "io_and_status_controller",
+                        "estop_controller",
                         "joint_state_broadcaster",
                     ]
                 },
@@ -194,7 +194,7 @@ def generate_launch_description():
             position_trajectory_controller_spawner,
             joint_state_broadcaster_spawner,
             rviz_node,
-            io_and_status_controller_spawner,
+            estop_controller_spawner,
             controller_stopper 
         ]
     else:
