@@ -67,6 +67,7 @@ namespace vention_rail_hardware_interface
         double position_limit;
         double velocity_limit;
         double curr_position_;
+        double curr_velocity_;
         double position_cmd_;
         bool run_;
         std::thread read_thread_;

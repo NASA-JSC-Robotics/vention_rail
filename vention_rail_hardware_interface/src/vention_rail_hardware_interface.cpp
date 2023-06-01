@@ -15,7 +15,9 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 500;
+const double Kp = 10000;
+const double Kd = 4000;
+const double Ki = 20;
 
 using namespace std;
 
@@ -162,6 +164,7 @@ namespace vention_rail_hardware_interface
         write_thread_ = thread(&RailEHardwareInterface::writeLoop, this); 
         run_ = true;
         curr_position_ = 0.0;
+        curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
@@ -183,13 +186,15 @@ namespace vention_rail_hardware_interface
     hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         // int sockfd = connect_to_rail(ip_addr, port);
-        double previous_position_ = hw_states_positions_[0];
+        // double previous_position_ = hw_states_positions_[0];
         // hw_states_positions_[0] = get_rail_position(sockfd);
         {
             std::lock_guard<std::mutex> lock(read_m_);
             hw_states_positions_[0] = curr_position_;
+            hw_states_velocities_[0] = curr_velocity_;
+
         }
-        hw_states_velocities_[0] = (hw_states_positions_[0] - previous_position_) / period.seconds();
+        
         hw_states_robot_ready_[0] = double(!is_stopped());
 
         RCLCPP_DEBUG(
@@ -221,12 +226,24 @@ namespace vention_rail_hardware_interface
     }
 
     void RailEHardwareInterface::readLoop(){
+        double period_seconds;
+        auto last_time = std::chrono::steady_clock::now();
+        auto curr_time = std::chrono::steady_clock::now();
         while(run_){
+            static double curr_position_api = 0.0;
+            double previous_position = curr_position_api;
+
             int sockfd = connect_to_rail(ip_addr, port);
-            double curr_position_api = get_rail_position(sockfd);
+            
+            curr_position_api = get_rail_position(sockfd);
+
+            last_time = curr_time;
+            curr_time = std::chrono::steady_clock::now();
+            period_seconds = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count())/1.0e9;
             {
                 std::lock_guard<std::mutex> lock(read_m_);
                 curr_position_ = curr_position_api;
+                curr_velocity_ = (curr_position_api - previous_position) / period_seconds;
             }
             close_connection_to_rail(sockfd);
             usleep(10);
@@ -237,9 +254,12 @@ namespace vention_rail_hardware_interface
         while(run_){
             int sockfd = connect_to_rail(ip_addr, port);
             double velocity;
+            static double integral = 0.0;
             {
                 std::lock_guard<std::mutex> lock(write_m_);
-                velocity = clamp(Kp * (position_cmd_ - hw_states_positions_[0]), -velocity_limit, velocity_limit);
+                integral += (position_cmd_ - hw_states_positions_[0]);
+                double unclamped_vel_cmd = Kp * (position_cmd_ - hw_states_positions_[0]) - Kd * hw_states_velocities_[0] + Ki * integral;
+                velocity = clamp(unclamped_vel_cmd, -velocity_limit, velocity_limit);
             }
             string vel_cmd_str = create_velocity_command(velocity);
             string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
