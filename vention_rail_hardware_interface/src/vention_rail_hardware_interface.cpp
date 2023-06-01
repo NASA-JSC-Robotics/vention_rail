@@ -56,13 +56,14 @@ namespace vention_rail_hardware_interface
 
     CallbackReturn RailEHardwareInterface::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
     {
+        
+        run_ = false;
+        read_thread_.join();
+        write_thread_.join();
         int sockfd = connect_to_rail(ip_addr, port);
         // Make sure we are not moving
         sendHTTPMessage(stop_all_motion().c_str(), sockfd);
         close_connection_to_rail(sockfd);
-        run_ = false;
-        read_thread_.join();
-        write_thread_.join();
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
         return CallbackReturn::SUCCESS;
     }
@@ -160,19 +161,21 @@ namespace vention_rail_hardware_interface
         read_thread_ = thread(&RailEHardwareInterface::readLoop, this); 
         write_thread_ = thread(&RailEHardwareInterface::writeLoop, this); 
         run_ = true;
+        curr_position_ = 0.0;
+        position_cmd_ = 0.0;
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
     }
 
     CallbackReturn RailEHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
     {
+        run_ = false;
+        read_thread_.join();
+        write_thread_.join();
         int sockfd = connect_to_rail(ip_addr, port);
         // Make sure we are not moving
         sendHTTPMessage(stop_all_motion().c_str(), sockfd);
         close_connection_to_rail(sockfd);
-        run_ = false;
-        read_thread_.join();
-        write_thread_.join();
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully deactivated!");
         return CallbackReturn::SUCCESS;
     }
