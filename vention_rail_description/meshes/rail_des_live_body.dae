@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <asset>
+    <contributor>
+      <author>Blender User</author>
+      <authoring_tool>Blender 3.5.1 commit date:2023-04-24, commit time:18:11, hash:e1ccd9d4a1d3</authoring_tool>
+    </contributor>
+    <created>2023-06-01T15:32:07</created>
+    <modified>2023-06-01T15:32:07</modified>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_effects>
+    <effect id="DEFAULT_MTL-effect">
+      <profile_COMMON>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <color sid="diffuse">0.8 0.8 0.8 1</color>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images/>
+  <library_materials>
+    <material id="DEFAULT_MTL-material" name="DEFAULT_MTL">
+      <instance_effect url="#DEFAULT_MTL-effect"/>
+    </material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="rail_des_live_body-mesh" name="rail_des_live_body">
+      <mesh>
+        <source id="rail_des_live_body-mesh-positions">
+          <float_array id="rail_des_live_body-mesh-positions-array" count="168">-1.18125 -0.04299998 0.04299998 -1.18125 -0.06749999 0.04499995 -1.18125 0.06749999 0.04499995 0 -0.06749999 0.04499995 -1.18125 0.06749999 0.04499995 -1.18125 -0.06749999 0.04499995 -1.18125 0.04299998 -0.04299998 -1.18125 0.06749999 -0.04499995 0 0.06749999 0.04499995 -1.18125 0.06749999 -0.04499995 -1.18125 0.06749999 0.04499995 -1.18125 0.04299998 0.04299998 0 0.06749999 0.04499995 -1.18125 -0.06749999 -0.04499995 0 -0.06749999 -0.04499995 -1.18125 -0.06749999 0.04499995 -1.18125 -0.06749999 -0.04499995 0 -0.06749999 0.04499995 0 0.06749999 -0.04499995 -1.18125 -0.06749999 -0.04499995 -1.18125 0.06749999 -0.04499995 -1.18125 -0.04299998 -0.04299998 0 -0.06749999 -0.04499995 0 0.06749999 -0.04499995 -1.25625 -0.04299998 0.04299998 -1.18125 -0.04299998 0.04299998 -1.18125 0.04299998 0.04299998 -1.25625 -0.04299998 -0.04299998 -1.18125 -0.04299998 -0.04299998 -1.18125 -0.04299998 0.04299998 -1.25625 -0.04299998 0.04299998 -1.25625 0.04299998 0.04299998 -1.18125 0.04299998 0.04299998 -1.18125 0.04299998 -0.04299998 -1.25625 0.04299998 0.04299998 -1.25625 0.04299998 -0.04299998 -1.18125 0.04299998 -0.04299998 -1.18125 -0.04299998 -0.04299998 -1.25625 0.04299998 -0.04299998 -1.25625 -0.04299998 -0.04299998 1.18125 0.06749999 0.04499995 1.18125 0.06749999 -0.04499995 1.18125 0.06749999 -0.04499995 1.18125 -0.06749999 0.04499995 1.18125 0.06749999 -0.04499995 1.18125 0.06749999 0.04499995 1.18125 -0.06749999 -0.04499995 1.18125 -0.06749999 -0.04499995 1.18125 -0.06749999 0.04499995 1.18125 0.06749999 0.04499995 1.18125 -0.06749999 -0.04499995 1.18125 -0.06749999 0.04499995 -1.25625 0.04299998 -0.04299998 -1.25625 -0.04299998 -0.04299998 -1.25625 -0.04299998 0.04299998 -1.25625 0.04299998 0.04299998</float_array>
+          <technique_common>
+            <accessor source="#rail_des_live_body-mesh-positions-array" count="56" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="rail_des_live_body-mesh-normals">
+          <float_array id="rail_des_live_body-mesh-normals-array" count="42">-1 1.57253e-6 0 -1 6.40747e-6 0 -1 6.71358e-6 0 0 0 1 -1 -1.39425e-6 0 -1 -6.40747e-6 0 0 1 0 -1 3.56449e-6 0 -1 -4.31478e-6 0 0 -1 0 0 0 -1 -1 -2.47965e-6 0 1 0 0 -1 0 0</float_array>
+          <technique_common>
+            <accessor source="#rail_des_live_body-mesh-normals-array" count="14" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="rail_des_live_body-mesh-map-0">
+          <float_array id="rail_des_live_body-mesh-map-0-array" count="216">3.49e-4 0.53092 0.003678977 0.532325 0.996321 0.532325 0.247247 1 0.996321 0.532325 0.003678977 0.532325 0.999651 0.46908 0.996321 0.532325 0.996321 0.467675 0.752753 1 0.996321 0.467675 0.996321 0.532325 0.999651 0.53092 3.49e-4 0.53092 0.996321 0.532325 0.999651 0.46908 0.999651 0.53092 0.996321 0.532325 0.247247 1 0.752753 1 0.996321 0.532325 3.49e-4 0.53092 0.003678977 0.467675 0.003678977 0.532325 0.247247 0 0.003678977 0.532325 0.003678977 0.467675 0.247247 1 0.003678977 0.532325 0.247247 0 0.999651 0.46908 0.996321 0.467675 0.003678977 0.467675 0.752753 0 0.003678977 0.467675 0.996321 0.467675 3.49e-4 0.46908 0.003678977 0.467675 3.49e-4 0.53092 3.49e-4 0.46908 0.999651 0.46908 0.003678977 0.467675 0.247247 0 0.003678977 0.467675 0.752753 0 0.752753 1 0.752753 0 0.996321 0.467675 0 0.529078 3.49e-4 0.53092 0.999651 0.53092 0 0.470922 3.49e-4 0.46908 3.49e-4 0.53092 0 0.529078 0 0.470922 3.49e-4 0.53092 1 0.529078 0.999651 0.53092 0.999651 0.46908 1 0.529078 0 0.529078 0.999651 0.53092 1 0.470922 0.999651 0.46908 3.49e-4 0.46908 1 0.529078 0.999651 0.46908 1 0.470922 1 0.470922 3.49e-4 0.46908 0 0.470922 0.509185 0.532325 0.509185 0.467675 0.752753 0 0.247247 0 0.752753 0 0.509185 0.467675 0.752753 1 0.509185 0.532325 0.752753 0 0.490815 0.532325 0.509185 0.467675 0.509185 0.532325 0.490815 0.467675 0.247247 0 0.509185 0.467675 0.490815 0.532325 0.490815 0.467675 0.509185 0.467675 0.490815 0.532325 0.509185 0.532325 0.752753 1 0.490815 0.532325 0.752753 1 0.247247 1 0.247247 1 0.247247 0 0.490815 0.467675 0.490815 0.532325 0.247247 1 0.490815 0.467675 1 0.470922 0 0.470922 0 0.529078 1 0.529078 1 0.470922 0 0.529078</float_array>
+          <technique_common>
+            <accessor source="#rail_des_live_body-mesh-map-0-array" count="108" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="rail_des_live_body-mesh-vertices">
+          <input semantic="POSITION" source="#rail_des_live_body-mesh-positions"/>
+        </vertices>
+        <triangles material="DEFAULT_MTL-material" count="36">
+          <input semantic="VERTEX" source="#rail_des_live_body-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#rail_des_live_body-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#rail_des_live_body-mesh-map-0" offset="2" set="2"/>
+          <p>0 0 0 1 1 1 2 2 2 3 3 3 4 3 4 5 3 5 6 4 6 2 2 7 7 5 8 8 6 9 9 6 10 10 6 11 11 7 12 0 0 13 2 2 14 6 4 15 11 7 16 2 2 17 3 3 18 12 3 19 4 3 20 0 0 21 13 8 22 1 1 23 14 9 24 15 9 25 16 9 26 17 9 27 15 9 28 14 9 29 6 4 30 7 5 31 13 8 32 18 10 33 19 10 34 20 10 35 21 11 36 13 8 37 0 0 38 21 11 39 6 4 40 13 8 41 22 10 42 19 10 43 18 10 44 8 6 45 23 6 46 9 6 47 24 3 48 25 3 49 26 3 50 27 9 51 28 9 52 29 9 53 30 9 54 27 9 55 29 9 56 31 6 57 32 6 58 33 6 59 34 3 60 24 3 61 26 3 62 35 10 63 36 10 64 37 10 65 31 6 66 33 6 67 38 6 68 35 10 69 37 10 70 39 10 71 40 6 72 41 6 73 23 6 74 22 10 75 18 10 76 42 10 77 8 6 78 40 6 79 23 6 80 43 12 81 44 12 82 45 12 83 46 10 84 22 10 85 42 10 86 43 12 87 47 12 88 44 12 89 48 3 90 49 3 91 12 3 92 48 3 93 12 3 94 3 3 95 17 9 96 14 9 97 50 9 98 51 9 99 17 9 100 50 9 101 52 13 102 53 13 103 54 13 104 55 13 105 52 13 106 54 13 107</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="rail_des_live_body" name="rail_des_live_body" type="NODE">
+        <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+        <instance_geometry url="#rail_des_live_body-mesh" name="rail_des_live_body">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="DEFAULT_MTL-material" target="#DEFAULT_MTL-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene"/>
+  </scene>
+</COLLADA>
