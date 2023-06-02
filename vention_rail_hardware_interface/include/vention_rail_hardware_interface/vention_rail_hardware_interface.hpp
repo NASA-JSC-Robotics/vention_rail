@@ -13,7 +13,7 @@
 #include "rclcpp/time.hpp"
 #include "visibility_control.h"
 #include "control_toolbox/pid.hpp"
-
+#include <atomic>
 
 
 
@@ -67,10 +67,9 @@ namespace vention_rail_hardware_interface
         int port;
         double position_limit;
         double velocity_limit;
-        double curr_position_;
-        double curr_velocity_;
+        std::atomic<double> curr_position_;
+        std::atomic<double> curr_velocity_;
         double position_cmd_;
-        double dt_;
         bool run_;
         std::thread read_thread_;
         std::thread write_thread_;
