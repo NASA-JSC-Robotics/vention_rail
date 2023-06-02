@@ -15,9 +15,9 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 10000;
-const double Kd = 4000;
-const double Ki = 20;
+const double Kp = 1000;
+const double Kd = 1000;
+const double Ki = 0.2;
 
 using namespace std;
 
@@ -166,6 +166,9 @@ namespace vention_rail_hardware_interface
         curr_position_ = 0.0;
         curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
+        dt_ = 0.0;
+        pid_ = control_toolbox::Pid(Kp, Kd, Ki);
+        pid_.reset();
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
     }
@@ -226,7 +229,6 @@ namespace vention_rail_hardware_interface
     }
 
     void RailEHardwareInterface::readLoop(){
-        double period_seconds;
         auto last_time = std::chrono::steady_clock::now();
         auto curr_time = std::chrono::steady_clock::now();
         while(run_){
@@ -239,11 +241,11 @@ namespace vention_rail_hardware_interface
 
             last_time = curr_time;
             curr_time = std::chrono::steady_clock::now();
-            period_seconds = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count())/1.0e9;
+            dt_ = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count())/1.0e9;
             {
                 std::lock_guard<std::mutex> lock(read_m_);
                 curr_position_ = curr_position_api;
-                curr_velocity_ = (curr_position_api - previous_position) / period_seconds;
+                curr_velocity_ = (curr_position_api - previous_position) / dt_;
             }
             close_connection_to_rail(sockfd);
             usleep(10);
@@ -255,12 +257,16 @@ namespace vention_rail_hardware_interface
             int sockfd = connect_to_rail(ip_addr, port);
             double velocity;
             static double integral = 0.0;
+            double unclamped_vel_cmd;
+            double unclamped_vel_cmd_pid;
             {
                 std::lock_guard<std::mutex> lock(write_m_);
                 integral += (position_cmd_ - hw_states_positions_[0]);
-                double unclamped_vel_cmd = Kp * (position_cmd_ - hw_states_positions_[0]) - Kd * hw_states_velocities_[0] + Ki * integral;
+                unclamped_vel_cmd = Kp * (position_cmd_ - hw_states_positions_[0]) - Kd * hw_states_velocities_[0] + Ki * integral;
+                unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_*1.0e9);
                 velocity = clamp(unclamped_vel_cmd, -velocity_limit, velocity_limit);
             }
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "old: %0.3f, pid: %0.3f",unclamped_vel_cmd, unclamped_vel_cmd_pid);
             string vel_cmd_str = create_velocity_command(velocity);
             string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
             if (response.find("error") != string::npos)

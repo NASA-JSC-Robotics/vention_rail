@@ -12,6 +12,7 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/time.hpp"
 #include "visibility_control.h"
+#include "control_toolbox/pid.hpp"
 
 
 
@@ -69,14 +70,15 @@ namespace vention_rail_hardware_interface
         double curr_position_;
         double curr_velocity_;
         double position_cmd_;
+        double dt_;
         bool run_;
         std::thread read_thread_;
         std::thread write_thread_;
         std::mutex read_m_;
         std::mutex write_m_;
+        control_toolbox::Pid pid_;
         void readLoop();
         void writeLoop();
-
     };
 }
 
