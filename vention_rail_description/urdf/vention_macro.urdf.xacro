@@ -40,11 +40,11 @@
       </collision>
     </link>
 
-    <joint name="vention_rail_base_to_carriage" type="fixed">
+    <joint name="vention_rail_base_to_carriage" type="prismatic">
       <origin xyz="-0.96975 0 0.09600" rpy="0 0 0"/>
       <parent link="${tf_prefix}vention_rail_base_link"/>
       <child link="${tf_prefix}vention_rail_carriage"/>
-    </joint>
+      <limit lower="0" upper="${position_limit}" effort="1000" velocity="${velocity_limit}"/>
 
     <link name="${tf_prefix}vention_rail_gearbox">
       <visual>
