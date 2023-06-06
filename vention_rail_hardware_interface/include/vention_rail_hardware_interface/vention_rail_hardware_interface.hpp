@@ -62,6 +62,11 @@ namespace vention_rail_hardware_interface
 
         std::vector<double> hw_commands_positions_;
 
+        int sockfd_read_;
+        int sockfd_write_;
+        bool read_sock_open = false;
+        bool write_sock_open = false;
+
         hardware_interface::HardwareInfo system_info;
         std::string ip_addr;
         int port;
