@@ -8,7 +8,7 @@ from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessStart
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 
@@ -165,44 +165,38 @@ def generate_launch_description():
         arguments=["-d", rviz_config_file],
         condition=IfCondition(rviz)
     )
+    
+    estop_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["estop_controller", "--controller-manager-timeout",
+                "100",],
+        condition=UnlessCondition(use_fake_hardware)
+    )
+    
+    controller_stopper = Node(
+        package='vention_rail_hardware_interface',
+        executable='controller_stopper_node', 
+        name='controller_stopper_node',
+        parameters=[
+            {
+                "consistent_controllers": [
+                    "estop_controller",
+                    "joint_state_broadcaster",
+                ]
+            },
+        ],
+        condition=UnlessCondition(use_fake_hardware)
+    )
 
-    if use_fake_hardware == "false":
-        estop_controller_spawner = Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["estop_controller", "--controller-manager-timeout",
-                    "100",],
-        )
-        
-        controller_stopper = Node(
-            package='vention_rail_hardware_interface',
-            executable='controller_stopper_node', 
-            name='controller_stopper_node',
-            parameters=[
-                {
-                    "consistent_controllers": [
-                        "estop_controller",
-                        "joint_state_broadcaster",
-                    ]
-                },
-            ],
-        )
-
-        nodes = [
-            robot_state_publisher,
-            controller_manager,
-            position_trajectory_controller_spawner,
-            joint_state_broadcaster_spawner,
-            rviz_node,
-            estop_controller_spawner,
-            controller_stopper 
-        ]
-    else:
-        nodes = [
-            robot_state_publisher,
-            controller_manager,
-            position_trajectory_controller_spawner,
-            joint_state_broadcaster_spawner,
-            rviz_node
-        ]
+    nodes = [
+        robot_state_publisher,
+        controller_manager,
+        position_trajectory_controller_spawner,
+        joint_state_broadcaster_spawner,
+        rviz_node,
+        estop_controller_spawner,
+        controller_stopper 
+    ]
+    
     return LaunchDescription(declared_arguments + nodes)
