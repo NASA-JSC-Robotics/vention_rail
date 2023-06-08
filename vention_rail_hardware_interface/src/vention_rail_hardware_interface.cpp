@@ -15,9 +15,12 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 1000;
-const double Kd = 1000;
-const double Ki = 0.2; // need to do some more investigation. I tried this at 2500 and it didn't seem to do anything with the new pid class
+const double Kp = 1500;
+const double Kd = 1400;
+const double Ki = 1.2;
+const double Ki_min = -10.0;
+const double Ki_max = 10.0;
+const bool antiwindup = true;
 
 using namespace std;
 
@@ -185,7 +188,7 @@ namespace vention_rail_hardware_interface
         curr_position_ = 0.0;
         curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
-        pid_ = control_toolbox::Pid(Kp, Kd, Ki);
+        pid_ = control_toolbox::Pid(Kp, Kd, Ki, Ki_max, Ki_min, antiwindup);
         pid_.reset();
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
