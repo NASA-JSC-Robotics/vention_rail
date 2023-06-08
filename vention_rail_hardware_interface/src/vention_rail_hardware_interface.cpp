@@ -15,9 +15,9 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 10000;
-const double Kd = 4000;
-const double Ki = 20;
+const double Kp = 1000;
+const double Kd = 1000;
+const double Ki = 0.2; // need to do some more investigation. I tried this at 2500 and it didn't seem to do anything with the new pid class
 
 using namespace std;
 
@@ -166,6 +166,8 @@ namespace vention_rail_hardware_interface
         curr_position_ = 0.0;
         curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
+        pid_ = control_toolbox::Pid(Kp, Kd, Ki);
+        pid_.reset();
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
         return CallbackReturn::SUCCESS;
     }
@@ -185,15 +187,8 @@ namespace vention_rail_hardware_interface
 
     hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
-        // int sockfd = connect_to_rail(ip_addr, port);
-        // double previous_position_ = hw_states_positions_[0];
-        // hw_states_positions_[0] = get_rail_position(sockfd);
-        {
-            std::lock_guard<std::mutex> lock(read_m_);
-            hw_states_positions_[0] = curr_position_;
-            hw_states_velocities_[0] = curr_velocity_;
-
-        }
+        hw_states_positions_[0] = curr_position_;
+        hw_states_velocities_[0] = curr_velocity_;
         
         hw_states_robot_ready_[0] = double(!is_stopped());
 
@@ -226,42 +221,45 @@ namespace vention_rail_hardware_interface
     }
 
     void RailEHardwareInterface::readLoop(){
-        double period_seconds;
         auto last_time = std::chrono::steady_clock::now();
         auto curr_time = std::chrono::steady_clock::now();
         while(run_){
+            int sockfd = connect_to_rail(ip_addr, port);
+
             static double curr_position_api = 0.0;
             double previous_position = curr_position_api;
-
-            int sockfd = connect_to_rail(ip_addr, port);
             
             curr_position_api = get_rail_position(sockfd);
 
+            // get period of cycle for velocity calculation
             last_time = curr_time;
             curr_time = std::chrono::steady_clock::now();
-            period_seconds = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count())/1.0e9;
-            {
-                std::lock_guard<std::mutex> lock(read_m_);
-                curr_position_ = curr_position_api;
-                curr_velocity_ = (curr_position_api - previous_position) / period_seconds;
-            }
+            int64_t dt_read_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
+
+            curr_position_ = curr_position_api;
+            curr_velocity_ = (curr_position_api - previous_position) / (static_cast<double>(dt_read_)/1.0e9);
             close_connection_to_rail(sockfd);
             usleep(10);
         }
     }
 
     void RailEHardwareInterface::writeLoop(){
+        auto last_time = std::chrono::steady_clock::now();
+        auto curr_time = std::chrono::steady_clock::now();
         while(run_){
             int sockfd = connect_to_rail(ip_addr, port);
-            double velocity;
-            static double integral = 0.0;
-            {
-                std::lock_guard<std::mutex> lock(write_m_);
-                integral += (position_cmd_ - hw_states_positions_[0]);
-                double unclamped_vel_cmd = Kp * (position_cmd_ - hw_states_positions_[0]) - Kd * hw_states_velocities_[0] + Ki * integral;
-                velocity = clamp(unclamped_vel_cmd, -velocity_limit, velocity_limit);
-            }
-            string vel_cmd_str = create_velocity_command(velocity);
+
+            last_time = curr_time;
+            curr_time = std::chrono::steady_clock::now();
+            int64_t dt_write_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
+            
+            double unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_write_);
+            double pe, de, ie;
+            pid_.getCurrentPIDErrors(pe, ie, de);
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"errors: p: %0.3f, d: %0.3f, i: %0.3f", pe, de, ie);
+            double velocity_cmd = clamp(unclamped_vel_cmd_pid, -velocity_limit, velocity_limit);
+
+            string vel_cmd_str = create_velocity_command(velocity_cmd);
             string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd);
             if (response.find("error") != string::npos)
             {

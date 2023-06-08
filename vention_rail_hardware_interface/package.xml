@@ -13,6 +13,7 @@
   <depend>lifecycle_msgs</depend>
   <depend>rcpputils</depend>
   <depend>tinyxml2_vendor</depend>
+  <depend>control_toolbox</depend>
 
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
