@@ -11,29 +11,6 @@ namespace vention_rail_hardware_interface
 {    
     int port;
     string ip_addr;
-    void signal_callback_handler(int signum)
-    {
-        // Terminate program
-        int sockfd = connect_to_rail(ip_addr,port);
-        // Make sure we are not moving
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd);
-        close_connection_to_rail(sockfd);
-        exit(signum);
-    }
-
-    double get_rail_position(int sockfd)
-    {
-        string message_fmt = "GET /smartDrives/position HTTP/1.1\r\n\r\n";
-        string pos_str = sendHTTPMessage(message_fmt.c_str(), sockfd);
-        // Find the position in the reponse
-        string temp = pos_str.substr(pos_str.size() - 7);
-        // Tokenize position
-        string token = temp.substr(temp.find(":") + 1).substr(0, token.find("}"));
-        prev_position = curr_position;
-        // Position provided is in milimeters, conversion to meters
-        curr_position = stof(token) / 1000.0;
-        return curr_position;
-    }
 
     double get_rail_velocity(double dt)
     {
