@@ -62,7 +62,7 @@ namespace vention_rail_hardware_interface
         return command_str;
     }
 
-    int connect_to_rail(string host, int portno)
+    int connect_to_rail(string host, int portno, float timeout)
     {
         port = portno;
         ip_addr = host;
@@ -102,12 +102,14 @@ namespace vention_rail_hardware_interface
         }
 
         // set timeout
-        struct timeval timeout;
-        timeout.tv_sec = 5;
-        timeout.tv_usec = 0;
+        struct timeval timeout_;
+        timeout_.tv_sec = int(timeout);
+        timeout_.tv_usec = int((timeout - int(timeout)) * 1000000);
+        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+                    "Seconds: %ld, us: %ld", timeout_.tv_sec, timeout_.tv_usec);
 
-        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout,
-                       sizeof timeout) < 0)
+        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout_,
+                       sizeof timeout_) < 0)
         {
             RCLCPP_FATAL(
                 rclcpp::get_logger("RailEHardwareInterface"),
@@ -131,6 +133,9 @@ namespace vention_rail_hardware_interface
         // fill in the message
         sprintf(message, "%s", message_fmt);
 
+                    // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+                    // "before write");
+
         // send the request
         total = strlen(message);
         sent = 0;
@@ -153,18 +158,26 @@ namespace vention_rail_hardware_interface
         // receive the response
         total = sizeof(response) - 1;
         received = 0;
-
+        // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+        //             "before read");
+        // auto now = std::chrono::system_clock::now();
         bytes = read(sockfd, response + received, total - received);
+        
+        // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+        //             "read_time: %i", (std::chrono::system_clock::now() - now));
+
         if (bytes < 0)
         {
-            RCLCPP_FATAL(
+            RCLCPP_WARN(
                 rclcpp::get_logger("RailEHardwareInterface"),
                 "ERROR reading response from socket");
+            
         }
         else
         {
             received += bytes;
         }
+
 
         if (received == total)
         {

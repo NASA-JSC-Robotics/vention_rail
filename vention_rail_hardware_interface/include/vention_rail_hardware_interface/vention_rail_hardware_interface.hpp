@@ -74,6 +74,7 @@ namespace vention_rail_hardware_interface
         double velocity_limit;
         std::atomic<double> curr_position_;
         std::atomic<double> curr_velocity_;
+        std::atomic<bool> sending_http_message_;
         double position_cmd_;
         // bool run_;
         std::thread read_thread_;

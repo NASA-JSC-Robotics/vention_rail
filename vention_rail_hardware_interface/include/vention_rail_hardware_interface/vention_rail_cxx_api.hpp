@@ -27,7 +27,7 @@ namespace vention_rail_hardware_interface
     std::string create_motion_complete_command();
     std::string stop_all_motion();
     std::string create_velocity_command(double command);
-    int connect_to_rail(std::string ip_addr, int portno);
+    int connect_to_rail(std::string ip_addr, int portno, float timeout);
     void close_connection_to_rail(int sockfd);
     std::string sendHTTPMessage(const char message_fmt[], int sockfd);
 };

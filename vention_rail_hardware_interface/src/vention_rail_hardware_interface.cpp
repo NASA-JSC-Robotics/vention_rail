@@ -17,9 +17,9 @@
 // Velocity controller proportional gain
 const double Kp = 1500;
 const double Kd = 1400;
-const double Ki = 1.2;
-const double Ki_min = -10.0;
-const double Ki_max = 10.0;
+const double Ki = 0;
+const double Ki_min = -2.0;
+const double Ki_max = 2.0;
 const bool antiwindup = true;
 
 using namespace std;
@@ -65,8 +65,8 @@ namespace vention_rail_hardware_interface
 
     CallbackReturn RailEHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
     {
-        sockfd_read_ = connect_to_rail(ip_addr, port);
-        sockfd_write_ = connect_to_rail(ip_addr, port);
+        sockfd_read_ = connect_to_rail(ip_addr, port, 2.5);
+        sockfd_write_ = connect_to_rail(ip_addr, port, 2.5);
         read_closed_ = false;
         write_closed_ = false;
         // Make sure we are not moving
@@ -188,6 +188,7 @@ namespace vention_rail_hardware_interface
         curr_position_ = 0.0;
         curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
+        sending_http_message_ = false;
         pid_ = control_toolbox::Pid(Kp, Kd, Ki, Ki_max, Ki_min, antiwindup);
         pid_.reset();
         RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
@@ -246,28 +247,36 @@ namespace vention_rail_hardware_interface
         auto curr_time = std::chrono::steady_clock::now();
         while(run_){
             double previous_position = curr_position_;
-            
             std::string message_fmt = "GET /smartDrives/position HTTP/1.1\r\n\r\n";
             std::string pos_str = sendHTTPMessage(message_fmt.c_str(), sockfd_read_);
             if (pos_str.find("error") != string::npos)
             {
                 RCLCPP_FATAL(rclcpp::get_logger("RailEHardwareInterface"),"Error getting position, Check E-Stop Status!");
             }
-            else{
+            else if (pos_str != "") {
                 // Find the position in the reponse
                 string temp = pos_str.substr(pos_str.size() - 7);
                 // Tokenize position
                 string token = temp.substr(temp.find(":") + 1).substr(0, token.find("}"));
                 // Position provided is in milimeters, conversion to meters
-                curr_position_ = stof(token) / 1000.0;
+                try
+                {
+                    curr_position_ = stof(token) / 1000.0;
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                // get period of cycle for velocity calculation
+                last_time = curr_time;
+                curr_time = std::chrono::steady_clock::now();
+                int64_t dt_read_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
+                // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+                        // "Time in read loop (ns): %ld", dt_read_);
+                curr_velocity_ = (curr_position_ - previous_position) / (static_cast<double>(dt_read_)/1.0e9);
             }
-            // get period of cycle for velocity calculation
-            last_time = curr_time;
-            curr_time = std::chrono::steady_clock::now();
-            int64_t dt_read_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
-
-            curr_velocity_ = (curr_position_ - previous_position) / (static_cast<double>(dt_read_)/1.0e9);
         }
+        sendHTTPMessage(stop_all_motion().c_str(), sockfd_read_);
         close_connection_to_rail(sockfd_read_);
         read_closed_ = true;
     }
@@ -280,6 +289,8 @@ namespace vention_rail_hardware_interface
             last_time = curr_time;
             curr_time = std::chrono::steady_clock::now();
             int64_t dt_write_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
+            // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
+            //         "Time in write loop (ns): %ld", dt_write_);
             
             double unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_write_);
             double pe, de, ie;
