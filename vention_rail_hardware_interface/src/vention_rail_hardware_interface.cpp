@@ -15,8 +15,8 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 10.0;
-const double Kd = 0.0;
+const double Kp = 5.0;
+const double Kd = 5.0;
 const double Ki = 0.0;
 const double Ki_min = 0.0;
 const double Ki_max = 0.0;
@@ -64,13 +64,14 @@ namespace vention_rail_hardware_interface
 
     CallbackReturn RailEHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
     {
-        sockfd_ = connect_to_rail(ip_addr, port, 5.0);
+        sockfd_ = connect_to_rail(ip_addr, port, 50.0);
         com_closed_ = false;
         // Make sure we are not moving
-        sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
+        string stop_all_motion_str = sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
         // set maximum velocity and acceleration values
-        sendHTTPMessage(create_set_max_vel_command(velocity_limit), sockfd_);
-        sendHTTPMessage(create_set_max_acc_command(acceleration_limit), sockfd_);
+        string max_vel_str = sendHTTPMessage(create_set_max_vel_command(velocity_limit), sockfd_);
+        string max_acc_str = sendHTTPMessage(create_set_max_acc_command(acceleration_limit), sockfd_);
+
 
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully configure!");
         return CallbackReturn::SUCCESS;
@@ -149,9 +150,11 @@ namespace vention_rail_hardware_interface
                     "Driver sucessfully created!");
                 while (true) {
                     response = sendHTTPMessage(create_motion_complete_command(), sockfd_);
+                    RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Motion complete: %s", response.c_str());
                     if (response.find("true") != string::npos){
                         // set the homed position to 0
                         response = sendHTTPMessage(create_set_position_command(0.0), sockfd_);
+                        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Set position: %s", response.c_str());
                         break;
                     } 
                 }
@@ -239,6 +242,7 @@ namespace vention_rail_hardware_interface
     void RailEHardwareInterface::com_thread(){
         auto last_time = std::chrono::steady_clock::now();
         auto curr_time = std::chrono::steady_clock::now();
+        int counter = 0;
         while(run_){
             // get period of cycle for velocity calculation
             last_time = curr_time;
@@ -249,9 +253,10 @@ namespace vention_rail_hardware_interface
             double previous_position = curr_position_;
             std::string pos_str = sendHTTPMessage(create_get_position_command(), sockfd_);
             // if the returned string contains "error", don't try to parse
-            if (pos_str.find("error") != string::npos)
+            std::string estop_status_str = sendHTTPMessage(create_estop_status_command(), sockfd_);
+            if (estop_status_str.find("true") != string::npos)
             {
-                RCLCPP_FATAL(rclcpp::get_logger("RailEHardwareInterface"),"Error getting position, Check E-Stop Status!");
+                RCLCPP_FATAL(rclcpp::get_logger("RailEHardwareInterface"),"Check E-Stop Status!");
             }
             else {
                 const double parsed_position = parse_position_string(pos_str);
@@ -280,7 +285,7 @@ namespace vention_rail_hardware_interface
             string response = sendHTTPMessage(vel_cmd_str, sockfd_);
 
             // if we received an error, stop the rail. It is probably in estop state. Also command the current position
-            if (response.find("error") != string::npos)
+            if (estop_status_str.find("true") != string::npos)
             {
                 sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
                 RCLCPP_FATAL(
@@ -292,6 +297,7 @@ namespace vention_rail_hardware_interface
             {
                 reset_estop();
             }
+            counter++;
         }
         // once thread is over, 
         sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
