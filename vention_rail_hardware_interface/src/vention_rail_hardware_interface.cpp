@@ -15,11 +15,11 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 625;
-const double Kd = 0;
-const double Ki = 0;
-const double Ki_min = -2.0;
-const double Ki_max = 2.0;
+const double Kp = 10.0;
+const double Kd = 0.0;
+const double Ki = 0.0;
+const double Ki_min = 0.0;
+const double Ki_max = 0.0;
 const bool antiwindup = true;
 
 using namespace std;
