@@ -15,8 +15,8 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 1500;
-const double Kd = 1400;
+const double Kp = 625;
+const double Kd = 0;
 const double Ki = 0;
 const double Ki_min = -2.0;
 const double Ki_max = 2.0;
