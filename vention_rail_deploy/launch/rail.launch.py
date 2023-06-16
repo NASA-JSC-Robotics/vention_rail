@@ -48,14 +48,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "ip_addr",
-            default_value="192.168.7.2",
+            default_value="192.168.1.104",
             description="IP Address for Vention Rail",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "port",
-            default_value="8000",
+            default_value="9999",
             description="Port number for Vention Rail",
         )
     )
@@ -69,7 +69,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "velocity_limit",
-            default_value="0.5",
+            default_value="0.15",
+            description="Maximium velocity in meters/s for the rail",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "acceleration_limit",
+            default_value="1.0",
             description="Maximium velocity in meters/s for the rail",
         )
     )
@@ -90,6 +97,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration("rviz")
     position_limit = LaunchConfiguration("position_limit")
     velocity_limit = LaunchConfiguration("velocity_limit")
+    acceleration_limit = LaunchConfiguration("acceleration_limit")
 
     robot_description_content = Command(
         [
@@ -117,6 +125,9 @@ def generate_launch_description():
             " ",
             "velocity_limit:=",
             velocity_limit,
+            " ",
+            "acceleration_limit:=",
+            acceleration_limit,
             " ",
         ]
     )

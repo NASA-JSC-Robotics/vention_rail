@@ -4,10 +4,11 @@
     name
     tf_prefix
     use_fake_hardware:=false
-    ip_addr:=192.168.7.2
-    port:=8000
+    ip_addr:=192.168.1.104
+    port:=9999
     position_limit:=2.0
-    velocity_limit:=0.5">
+    velocity_limit:=0.15
+    acceleration_limit:=1.0">
         <xacro:unless value="${use_fake_hardware}">
             <ros2_control name="${name}" type="actuator">
                 <hardware>
@@ -17,6 +18,7 @@
                     <param name="port">${port}</param>
                     <param name="position_limit">${position_limit}</param>
                     <param name="velocity_limit">${velocity_limit}</param>
+                    <param name="acceleration_limit">${acceleration_limit}</param>
                 </hardware>
                 <joint name="${tf_prefix}vention_rail_base_to_carriage">
                     <command_interface name="position">

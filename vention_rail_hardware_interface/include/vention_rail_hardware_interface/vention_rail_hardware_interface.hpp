@@ -62,28 +62,25 @@ namespace vention_rail_hardware_interface
 
         std::vector<double> hw_commands_positions_;
 
-        int sockfd_read_;
-        int sockfd_write_;
-        bool read_sock_open = false;
-        bool write_sock_open = false;
-
         hardware_interface::HardwareInfo system_info;
-        std::string ip_addr;
-        int port;
-        double position_limit;
-        double velocity_limit;
-        std::atomic<double> curr_position_;
-        std::atomic<double> curr_velocity_;
-        std::atomic<bool> sending_http_message_;
-        double position_cmd_;
-        // bool run_;
-        std::thread read_thread_;
-        std::thread write_thread_;
-        std::mutex read_m_;
-        std::mutex write_m_;
-        control_toolbox::Pid pid_;
-        void readLoop();
-        void writeLoop();
+
+        int sockfd_; // communication socket for the vention system
+        std::string ip_addr; // ip address of the rail
+        int port; // port for connecting to the rail
+
+        double position_limit; // maximum position for the rail
+        double velocity_limit; // max absolute velocity allowed
+        double acceleration_limit; // max absolute acceleration allowed
+
+        std::atomic<double> curr_position_; // thread-safe position 
+        std::atomic<double> curr_velocity_; // thread-safe velocity 
+        std::atomic<double> position_cmd_; // thread-safe position setpoint
+        std::thread com_thread_; // thread which performs read and write as fast as possible
+
+        control_toolbox::Pid pid_; // pid controller to 
+
+        /// function which performs the reading and writing
+        void com_thread();
     };
 }
 
