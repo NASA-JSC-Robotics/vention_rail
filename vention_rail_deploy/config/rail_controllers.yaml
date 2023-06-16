@@ -5,13 +5,13 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    position_trajectory_controller:
+    rail_position_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
     estop_controller:
       type: vention_rail_controllers/EstopController 
 
-position_trajectory_controller:
+rail_position_trajectory_controller:
   ros__parameters:
     joints:
       - vention_rail_base_to_carriage
