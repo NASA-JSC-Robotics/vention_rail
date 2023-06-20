@@ -27,6 +27,9 @@ namespace vention_rail_hardware_interface
     /// sets_value of stopped_ to true
     void reset_estop();
 
+    // create command to check estop status
+    std::string create_estop_status_command();
+
     // create command to send the rail to the homing position
     std::string create_homing_command();
 
@@ -65,6 +68,9 @@ namespace vention_rail_hardware_interface
 
     /// send a message to a socket
     std::string sendHTTPMessage(std::string message, int sockfd);
+
+    std::string recvHTTPMessage(int sockfd);
+
 };
 
 #endif // VENTION_RAIL_CXX_API_HPP_
