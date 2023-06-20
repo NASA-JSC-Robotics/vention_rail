@@ -15,11 +15,11 @@
 #include "rclcpp/macros.hpp"
 
 // Velocity controller proportional gain
-const double Kp = 625;
-const double Kd = 0;
-const double Ki = 0;
-const double Ki_min = -2.0;
-const double Ki_max = 2.0;
+const double Kp = 5.0;
+const double Kd = 5.0;
+const double Ki = 0.0;
+const double Ki_min = 0.0;
+const double Ki_max = 0.0;
 const bool antiwindup = true;
 
 using namespace std;
@@ -27,16 +27,14 @@ using namespace std;
 namespace vention_rail_hardware_interface
 {
     std::atomic<bool> run_ = false;
-    std::atomic<bool> read_closed_ = false;
-    std::atomic<bool> write_closed_ = false;
+    std::atomic<bool> com_closed_ = false;
 
     void signal_callback_handler(int signum)
     {
         // Terminate program
-        std::cerr << "IN SIGNAL CALLBACK HANDLER" << std::endl;
         run_ = false;
-        while (!read_closed_ && !write_closed_){
-            // wait for the threads to shut down
+        while (!com_closed_){
+            // wait for the thread to shut down
         }
         exit(signum);
     }
@@ -59,19 +57,21 @@ namespace vention_rail_hardware_interface
         ip_addr = system_info.hardware_parameters["ip_addr"];
         port = stoi(system_info.hardware_parameters["port"]);
         position_limit = stof(system_info.hardware_parameters["position_limit"]);
-        velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]) * 1000.0; // Conversion from Meters to mm
+        velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]);
+        acceleration_limit = stof(system_info.hardware_parameters["acceleration_limit"]);
         return CallbackReturn::SUCCESS;
     }
 
     CallbackReturn RailEHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
     {
-        sockfd_read_ = connect_to_rail(ip_addr, port, 2.5);
-        sockfd_write_ = connect_to_rail(ip_addr, port, 2.5);
-        read_closed_ = false;
-        write_closed_ = false;
+        sockfd_ = connect_to_rail(ip_addr, port, 50.0);
+        com_closed_ = false;
         // Make sure we are not moving
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
-        // close_connection_to_rail(sockfd);
+        string stop_all_motion_str = sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
+        // set maximum velocity and acceleration values
+        string max_vel_str = sendHTTPMessage(create_set_max_vel_command(velocity_limit), sockfd_);
+        string max_acc_str = sendHTTPMessage(create_set_max_acc_command(acceleration_limit), sockfd_);
+
 
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully configure!");
         return CallbackReturn::SUCCESS;
@@ -80,14 +80,8 @@ namespace vention_rail_hardware_interface
     CallbackReturn RailEHardwareInterface::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
     {
         run_ = false;
-        read_thread_.join();
-        write_thread_.join();
-        // sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
-        close_connection_to_rail(sockfd_write_);
-        close_connection_to_rail(sockfd_read_);
-        // int sockfd = connect_to_rail(ip_addr, port);
-        // Make sure we are not moving
-        // close_connection_to_rail(sockfd);
+        com_thread_.join();
+        close_connection_to_rail(sockfd_);
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
         return CallbackReturn::SUCCESS;
     }
@@ -126,7 +120,6 @@ namespace vention_rail_hardware_interface
 
     CallbackReturn RailEHardwareInterface::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
     {
-        // int sockfd = connect_to_rail(ip_addr, port);
         for (unsigned int i = 0; i < hw_states_positions_.size(); ++i)
         {
             hw_states_positions_[i] = 0;
@@ -141,11 +134,10 @@ namespace vention_rail_hardware_interface
         // Trying to instantiate the driver
         try
         {
-            string homing_cmd_str = create_homing_command();
-            string response = sendHTTPMessage(homing_cmd_str.c_str(), sockfd_write_);
+            string response = sendHTTPMessage(create_homing_command(), sockfd_);
             if (response.find("error") != string::npos)
             {
-                sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
+                sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
                 RCLCPP_FATAL(
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Is the Estop Active?");
@@ -156,18 +148,16 @@ namespace vention_rail_hardware_interface
                 RCLCPP_INFO(
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Driver sucessfully created!");
-                // close_connection_to_rail(sockfd);
                 while (true) {
-                    // sockfd = connect_to_rail(ip_addr, port);
-                    string motion_complete_cmd_str = create_motion_complete_command();
-                    response = sendHTTPMessage(motion_complete_cmd_str.c_str(), sockfd_write_);
-                    // close_connection_to_rail(sockfd);
-                    if (response.find("COMPLETED") != string::npos){
+                    response = sendHTTPMessage(create_motion_complete_command(), sockfd_);
+                    RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Motion complete: %s", response.c_str());
+                    if (response.find("true") != string::npos){
+                        // set the homed position to 0
+                        response = sendHTTPMessage(create_set_position_command(0.0), sockfd_);
+                        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Set position: %s", response.c_str());
                         break;
                     } 
                 }
- 
-
             }
         }
         catch (boost::system::system_error &e)
@@ -179,40 +169,45 @@ namespace vention_rail_hardware_interface
         }
 
         // Make sure we are not moving
-        // sockfd = connect_to_rail(ip_addr, port);
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
-        // close_connection_to_rail(sockfd);
-        read_thread_ = thread(&RailEHardwareInterface::readLoop, this); 
-        write_thread_ = thread(&RailEHardwareInterface::writeLoop, this); 
+        sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
+
+        // start the reading and writing threads
+        com_thread_ = thread(&RailEHardwareInterface::com_thread, this);
+        
         run_ = true;
+
         curr_position_ = 0.0;
         curr_velocity_ = 0.0;
         position_cmd_ = 0.0;
-        sending_http_message_ = false;
+        
         pid_ = control_toolbox::Pid(Kp, Kd, Ki, Ki_max, Ki_min, antiwindup);
         pid_.reset();
-        RCLCPP_DEBUG(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
+
+        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully activated!");
+
         return CallbackReturn::SUCCESS;
     }
 
     CallbackReturn RailEHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
     {
+        // the com thread will joint after they complete one more loop, and the while(run_) triggers
         run_ = false;
-        read_thread_.join();
-        write_thread_.join();
+        com_thread_.join();
+
         // Make sure we are not moving
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
+        sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
 
         RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully deactivated!");
         return CallbackReturn::SUCCESS;
     }
 
-    hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
+    hardware_interface::return_type RailEHardwareInterface::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
     {
+        // get thread-safe variables
         hw_states_positions_[0] = curr_position_;
         hw_states_velocities_[0] = curr_velocity_;
         
-        hw_states_robot_ready_[0] = double(!is_stopped());
+        hw_states_robot_ready_[0] = static_cast<double>(!is_stopped());
 
         RCLCPP_DEBUG(
             rclcpp::get_logger("RailEHardwareInterface"),
@@ -225,7 +220,7 @@ namespace vention_rail_hardware_interface
         return hardware_interface::return_type::OK;
     }
 
-    hardware_interface::return_type RailEHardwareInterface::write(const rclcpp::Time &time, const rclcpp::Duration &period)
+    hardware_interface::return_type RailEHardwareInterface::write(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
     {
         static bool warned_ = false;
         if (hw_commands_positions_[0] > position_limit && !warned_) {
@@ -234,75 +229,65 @@ namespace vention_rail_hardware_interface
         } else if (hw_commands_positions_[0] <= position_limit && warned_) {
             warned_ = false;
         }
-        {
-            std::lock_guard<std::mutex> lock(write_m_);
-            position_cmd_ = clamp(hw_commands_positions_[0], 0.0, position_limit);
+
+        if (!is_stopped()){
+            // update threadsafe position setpoint
+            position_cmd_ = std::clamp(hw_commands_positions_[0], 0.0, position_limit);
         }
+        // or if we are stopped, the desired position just stays the same
 
         return hardware_interface::return_type::OK;
     }
 
-    void RailEHardwareInterface::readLoop(){
+    void RailEHardwareInterface::com_thread(){
         auto last_time = std::chrono::steady_clock::now();
         auto curr_time = std::chrono::steady_clock::now();
+        int counter = 0;
         while(run_){
-            double previous_position = curr_position_;
-            std::string message_fmt = "GET /smartDrives/position HTTP/1.1\r\n\r\n";
-            std::string pos_str = sendHTTPMessage(message_fmt.c_str(), sockfd_read_);
-            if (pos_str.find("error") != string::npos)
-            {
-                RCLCPP_FATAL(rclcpp::get_logger("RailEHardwareInterface"),"Error getting position, Check E-Stop Status!");
-            }
-            else if (pos_str != "") {
-                // Find the position in the reponse
-                string temp = pos_str.substr(pos_str.size() - 7);
-                // Tokenize position
-                string token = temp.substr(temp.find(":") + 1).substr(0, token.find("}"));
-                // Position provided is in milimeters, conversion to meters
-                try
-                {
-                    curr_position_ = stof(token) / 1000.0;
-                }
-                catch(const std::exception& e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-                // get period of cycle for velocity calculation
-                last_time = curr_time;
-                curr_time = std::chrono::steady_clock::now();
-                int64_t dt_read_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
-                // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-                        // "Time in read loop (ns): %ld", dt_read_);
-                curr_velocity_ = (curr_position_ - previous_position) / (static_cast<double>(dt_read_)/1.0e9);
-            }
-        }
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd_read_);
-        close_connection_to_rail(sockfd_read_);
-        read_closed_ = true;
-    }
-
-    void RailEHardwareInterface::writeLoop(){
-        auto last_time = std::chrono::steady_clock::now();
-        auto curr_time = std::chrono::steady_clock::now();
-        while(run_){
-
+            // get period of cycle for velocity calculation
             last_time = curr_time;
             curr_time = std::chrono::steady_clock::now();
-            int64_t dt_write_ = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
-            // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-            //         "Time in write loop (ns): %ld", dt_write_);
-            
-            double unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_write_);
-            double pe, de, ie;
-            pid_.getCurrentPIDErrors(pe, ie, de);
+            int64_t dt_com = std::chrono::duration_cast<std::chrono::nanoseconds> (curr_time - last_time).count();
 
-            double velocity_cmd = clamp(unclamped_vel_cmd_pid, -velocity_limit, velocity_limit);
-
-            string vel_cmd_str = create_velocity_command(velocity_cmd);
-            string response = sendHTTPMessage(vel_cmd_str.c_str(), sockfd_write_);
-            if (response.find("error") != string::npos)
+            // read position and compute velocity
+            double previous_position = curr_position_;
+            std::string pos_str = sendHTTPMessage(create_get_position_command(), sockfd_);
+            // if the returned string contains "error", don't try to parse
+            std::string estop_status_str = sendHTTPMessage(create_estop_status_command(), sockfd_);
+            if (estop_status_str.find("true") != string::npos)
             {
-                sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
+                RCLCPP_FATAL(rclcpp::get_logger("RailEHardwareInterface"),"Check E-Stop Status!");
+            }
+            else {
+                const double parsed_position = parse_position_string(pos_str);
+                // check to see if we were able to correctly parse the position
+                if (parsed_position != std::numeric_limits<double>::quiet_NaN())
+                {
+                    // update position and velocities
+                    curr_position_ = parsed_position;
+                    curr_velocity_ = (curr_position_ - previous_position) / (static_cast<double>(dt_com)/1.0e9);    
+                }
+                else
+                {
+                    // estimate our current position based on our previous velocity if we recieved invalid data
+                    curr_position_ = curr_position_ + curr_velocity_ * (static_cast<double>(dt_com)/1.0e9);
+                }
+            }
+
+            // write new velocity based on current position, velocity, and goal
+
+            // calculate vel command using pid controller 
+            double unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_com);
+            double velocity_cmd = std::clamp(unclamped_vel_cmd_pid, -velocity_limit, velocity_limit);
+
+            // write to rail
+            string vel_cmd_str = create_velocity_command(velocity_cmd);
+            string response = sendHTTPMessage(vel_cmd_str, sockfd_);
+
+            // if we received an error, stop the rail. It is probably in estop state. Also command the current position
+            if (estop_status_str.find("true") != string::npos)
+            {
+                sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
                 RCLCPP_FATAL(
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Error sending velocity command, Check E-Stop Status!");
@@ -312,12 +297,12 @@ namespace vention_rail_hardware_interface
             {
                 reset_estop();
             }
-
+            counter++;
         }
-        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"exited write loop");
-        sendHTTPMessage(stop_all_motion().c_str(), sockfd_write_);
-        close_connection_to_rail(sockfd_write_);
-        write_closed_ = true;
+        // once thread is over, 
+        sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
+        close_connection_to_rail(sockfd_);
+        com_closed_ = true;
     }
 }
 

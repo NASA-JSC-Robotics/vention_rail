@@ -12,12 +12,6 @@ namespace vention_rail_hardware_interface
     int port;
     string ip_addr;
 
-    double get_rail_velocity(double dt)
-    {
-        // Velocity in m/s (requires conversion from milimeters to meters)
-        return (curr_position - prev_position) / (1000.0 * dt);
-    }
-
     bool is_stopped()
     {
         return stopped;
@@ -28,44 +22,105 @@ namespace vention_rail_hardware_interface
         stopped = false;
     }
 
+    string create_estop_status_command()
+    {
+        return "estop/status;";
+    }
+
     string create_homing_command()
     {
-        string homing_str = "GET /gcode?gcode=G28+X HTTP/1.1\r\n\r\n";
-        return homing_str;
+        return "im_home_axis_1;";
     }
 
     string create_motion_complete_command()
     {
-        string motion_complete_str = "GET /gcode?gcode=V0 HTTP/1.1\r\n\r\n";
-        return motion_complete_str;
+        return "isMotionCompleted;";
     }
 
-    string stop_all_motion()
+    string create_stop_all_motion_command()
     {
-        string stop_str = "GET /gcode?gcode=M410+X HTTP/1.1\r\n\r\n";
         stopped = true;
-        return stop_str;
+        return "im_stop;";
     }
 
-    string create_velocity_command(double command)
+    string create_get_position_command()
     {
-        double vel_cmd = command;
-        string command_str = "GET /gcode?gcode=V7+S";
-        if (vel_cmd < 0.0)
-        {
-            command_str += "-";
-            vel_cmd = vel_cmd * -1.0;
-        }
-        string vel_cmd_str = to_string(vel_cmd);
-        command_str += vel_cmd_str + "+A50.0+X HTTP/1.1\r\n\r\n";
+        return "GET im_get_controller_pos_axis_1;";
+    }
+    
+    string create_set_position_command(double position)
+    {
+        // This is a bug in the MachineMotion firmware and should only require a value of 1000
+        int position_mm = static_cast<int>(position*1000.0);  // convert from 
+        return "SET im_set_controller_pos_axis_1/" + to_string(position_mm) + "/;";
+    }
+
+    string create_set_max_vel_command(double max_velocity)
+    {
+        int max_vel_mm_s = static_cast<int>(max_velocity*100000.0); // convert from m/s to mm/s
+        return "SET speed/" + to_string(max_vel_mm_s) + "/;";
+    }
+
+    string create_set_max_acc_command(double max_acceleration)
+    {
+        int max_acc_mm_s2 = static_cast<int>(max_acceleration*2000.0); // convert from m/s to mm/s
+        return "SET acceleration/" + to_string(max_acc_mm_s2) + "/;";
+    }
+
+    string create_velocity_command(double velocity, double accel)
+    {
         stopped = false;
+        int vel_cmd = static_cast<int>(velocity*1000.0); // convert from m/s to mm/s
+        int acc_cmd = static_cast<int>(accel*2000.0); // convert from m/s^2 to mm/s^2
+        string command_str = "SET im_conv_1 S" + to_string(vel_cmd) + " A" + to_string(acc_cmd) + ";";
         return command_str;
     }
 
-    int connect_to_rail(string host, int portno, float timeout)
+    double parse_position_string(std::string pos_str)
     {
-        port = portno;
-        ip_addr = host;
+        const auto pos_str_input = pos_str;
+
+        // check for open parenthesis and delete it if there
+        auto open_index = pos_str.find("(");
+        if (open_index != std::string::npos){
+            pos_str.erase(open_index,1);    
+        }
+        else{
+            RCLCPP_ERROR(
+                rclcpp::get_logger("RailEHardwareInterface"),
+                "Returned position string: '%s' was not of format (<position>). Not updating position.", pos_str_input.c_str());
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        // check for close parenthesis and delete it if there
+        auto close_index = pos_str.find(")");
+        if (close_index != std::string::npos){
+            pos_str.erase(close_index,1);    
+        }
+        else{
+            RCLCPP_ERROR(
+                rclcpp::get_logger("RailEHardwareInterface"),
+                "Returned position string: '%s' was not of format (<position>). Not updating position.", pos_str_input.c_str());
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        // check for open parenthesis and delete it if there
+        try
+        {
+            float position = static_cast<double>(stoi(pos_str)) / 1000.0; // convert mm to m
+            return position;
+        }
+        catch(const std::exception& e)
+        {
+            RCLCPP_ERROR(
+                rclcpp::get_logger("RailEHardwareInterface"),
+                    "Was not able to parse '%s' into a float. Not updating position.", pos_str.c_str());
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+    }
+
+    int connect_to_rail(string host, const int portno, const float timeout)
+    {
         struct hostent *server;
         struct sockaddr_in serv_addr;
 
@@ -103,10 +158,12 @@ namespace vention_rail_hardware_interface
 
         // set timeout
         struct timeval timeout_;
-        timeout_.tv_sec = int(timeout);
-        timeout_.tv_usec = int((timeout - int(timeout)) * 1000000);
-        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-                    "Seconds: %ld, us: %ld", timeout_.tv_sec, timeout_.tv_usec);
+        
+        // get second and microsecond components of the timeout
+        float whole, fraction;
+        fraction = std::modf(timeout, &whole);
+        timeout_.tv_sec = static_cast<int>(whole);
+        timeout_.tv_usec = static_cast<int>(fraction)*1000000; // convert fraction into microseconds
 
         if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout_,
                        sizeof timeout_) < 0)
@@ -115,6 +172,8 @@ namespace vention_rail_hardware_interface
                 rclcpp::get_logger("RailEHardwareInterface"),
                 "Error setting socket timeout");
         }
+
+        recvHTTPMessage(sockfd);
         return sockfd;
     }
 
@@ -124,17 +183,14 @@ namespace vention_rail_hardware_interface
         close(sockfd);
     }
 
-    string sendHTTPMessage(const char message_fmt[], int sockfd)
+    string sendHTTPMessage(string message_fmt, int sockfd)
     {
 
         int bytes, sent, received, total;
         char message[1024], response[4096];
 
         // fill in the message
-        sprintf(message, "%s", message_fmt);
-
-                    // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-                    // "before write");
+        sprintf(message, "%s", message_fmt.c_str());
 
         // send the request
         total = strlen(message);
@@ -144,9 +200,9 @@ namespace vention_rail_hardware_interface
             bytes = write(sockfd, message + sent, total - sent);
             if (bytes < 0)
             {
-            //     RCLCPP_FATAL(
-            //         rclcpp::get_logger("RailEHardwareInterface"),
-            //         "Error writing message to Rail");
+                RCLCPP_FATAL(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Error writing message to Rail");
             }
             if (bytes == 0)
                 break;
@@ -158,13 +214,42 @@ namespace vention_rail_hardware_interface
         // receive the response
         total = sizeof(response) - 1;
         received = 0;
-        // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-        //             "before read");
-        // auto now = std::chrono::system_clock::now();
         bytes = read(sockfd, response + received, total - received);
-        
-        // RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
-        //             "read_time: %i", (std::chrono::system_clock::now() - now));
+
+        if (bytes < 0)
+        {
+            RCLCPP_WARN(
+                rclcpp::get_logger("RailEHardwareInterface"),
+                "ERROR reading response from socket");
+            
+        }
+        else
+        {
+            received += bytes;
+        }
+
+
+        if (received == total)
+        {
+            RCLCPP_FATAL(
+                rclcpp::get_logger("RailEHardwareInterface"),
+                "ERROR storing complete response from socket, buffer too small");
+        }
+        return response;
+    }
+
+string recvHTTPMessage(int sockfd)
+    {
+
+        int bytes, received, total;
+        char response[4096];
+
+        memset(response, 0, sizeof(response));
+
+        // receive the response
+        total = sizeof(response) - 1;
+        received = 0;
+        bytes = read(sockfd, response + received, total - received);
 
         if (bytes < 0)
         {

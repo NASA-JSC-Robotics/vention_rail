@@ -48,14 +48,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "ip_addr",
-            default_value="192.168.7.2",
+            default_value="192.168.1.104",
             description="IP Address for Vention Rail",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "port",
-            default_value="8000",
+            default_value="9999",
             description="Port number for Vention Rail",
         )
     )
@@ -69,7 +69,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "velocity_limit",
-            default_value="0.5",
+            default_value="0.15",
+            description="Maximium velocity in meters/s for the rail",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "acceleration_limit",
+            default_value="1.0",
             description="Maximium velocity in meters/s for the rail",
         )
     )
@@ -90,6 +97,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration("rviz")
     position_limit = LaunchConfiguration("position_limit")
     velocity_limit = LaunchConfiguration("velocity_limit")
+    acceleration_limit = LaunchConfiguration("acceleration_limit")
 
     robot_description_content = Command(
         [
@@ -118,6 +126,9 @@ def generate_launch_description():
             "velocity_limit:=",
             velocity_limit,
             " ",
+            "acceleration_limit:=",
+            acceleration_limit,
+            " ",
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -136,14 +147,6 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[robot_description,
                     controller_params_file]
-    )
-
-    
-    position_trajectory_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["position_trajectory_controller", "--controller-manager-timeout",
-                "100",],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -165,38 +168,20 @@ def generate_launch_description():
         arguments=["-d", rviz_config_file],
         condition=IfCondition(rviz)
     )
-    
-    estop_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["estop_controller", "--controller-manager-timeout",
-                "100",],
-        condition=UnlessCondition(use_fake_hardware)
-    )
-    
-    controller_stopper = Node(
-        package='vention_rail_hardware_interface',
-        executable='controller_stopper_node', 
-        name='controller_stopper_node',
-        parameters=[
-            {
-                "consistent_controllers": [
-                    "estop_controller",
-                    "joint_state_broadcaster",
-                ]
-            },
-        ],
-        condition=UnlessCondition(use_fake_hardware)
-    )
 
     nodes = [
         robot_state_publisher,
         controller_manager,
-        position_trajectory_controller_spawner,
         joint_state_broadcaster_spawner,
-        rviz_node,
-        estop_controller_spawner,
-        controller_stopper 
+        rviz_node
     ]
+
+    spawn_controllers_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(get_package_share_directory("vention_rail_deploy"), 'launch','spawn_controllers.launch.py')),
+        launch_arguments={
+            "use_fake_hardware": use_fake_hardware,
+        }.items(),
+    )
     
-    return LaunchDescription(declared_arguments + nodes)
+    
+    return LaunchDescription(declared_arguments + nodes + [spawn_controllers_launch])
