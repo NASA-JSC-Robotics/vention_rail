@@ -30,7 +30,7 @@ def generate_launch_description():
     estop_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["estop_controller", 
+        arguments=["rail_estop_controller", 
                    "--controller-manager-timeout","100",
                    "-c", "controller_manager",
                    "-t", "vention_rail_controllers/EstopController ",
@@ -44,7 +44,7 @@ def generate_launch_description():
         parameters=[
             {
                 "consistent_controllers": [
-                    "estop_controller",
+                    "rail_estop_controller",
                     "joint_state_broadcaster",
                 ]
             },
