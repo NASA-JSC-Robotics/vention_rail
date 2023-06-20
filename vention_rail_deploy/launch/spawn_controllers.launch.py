@@ -37,10 +37,10 @@ def generate_launch_description():
                    "-p", controller_params_file],
         condition=UnlessCondition(use_fake_hardware)
     )    
-    controller_stopper = Node(
+    rail_controller_stopper = Node(
         package='vention_rail_hardware_interface',
         executable='controller_stopper_node', 
-        name='controller_stopper_node',
+        name='rail_controller_stopper_node',
         parameters=[
             {
                 "consistent_controllers": [
@@ -52,6 +52,6 @@ def generate_launch_description():
         condition=UnlessCondition(use_fake_hardware)
     )
 
-    nodes = [position_trajectory_controller_spawner, estop_controller_spawner, controller_stopper]    
+    nodes = [position_trajectory_controller_spawner, estop_controller_spawner, rail_controller_stopper]    
 
     return LaunchDescription(declared_arguments + nodes)
