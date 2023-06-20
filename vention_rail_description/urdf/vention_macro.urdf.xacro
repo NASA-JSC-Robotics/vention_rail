@@ -5,43 +5,95 @@
    <xacro:macro name="vention_rail" params="
     name
     tf_prefix
+    parent:=world
     use_fake_hardware:=false
     ip_addr:=192.168.1.104
     port:=9999
     position_limit:=2.0
     velocity_limit:=0.15
-    acceleration_limit:=1.0">
+    acceleration_limit:=1.0
+    *origin">
+
+    <joint name="${tf_prefix}vention_rail_base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${tf_prefix}vention_rail_base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
 
     <link name="${tf_prefix}vention_rail_base_link">
       <visual>
-        <origin xyz="-1.18125 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0.045" rpy="0 0 0"/>
         <geometry>
-          <!-- <box size="2.3625 0.153 0.09"/> -->
-          <mesh filename="file://$(find vention_rail_description)/meshes/base.dae"/>
+          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_live_body.dae"/>
         </geometry>
       </visual>
+      <collision>
+        <origin xyz="-0.0375 0 0.045" rpy="0 0 0"/>
+        <geometry>
+          <box size="2.4375 0.1350 0.0900"/>
+        </geometry>
+      </collision>
     </link>
 
     <link name="${tf_prefix}vention_rail_carriage">
       <visual>
-        <origin xyz="-0.1115 0 0.39115" rpy="0 0 0"/>
         <geometry>
-          <box size="0.223 0.223 0.023"/>
-          <!-- <mesh filename="file://$(find vention_rail_description)/meshes/carriage.dae"/> -->
+          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_live_carriage.dae"/>
         </geometry>
-        <material name="grey">
-          <color rgba="0.7 0.7 0.7 1"/>
-        </material>
       </visual>
+      <collision>
+        <origin xyz="0 0 0.00825" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.223 0.223 0.0205000"/>
+        </geometry>
+      </collision>
     </link>
-    
-    <joint name="${tf_prefix}vention_rail_base_to_carriage" type="prismatic">
-      <origin xyz="-0.223 0 0" rpy="0 0 3.14159"/>
+
+    <joint name="vention_rail_base_to_carriage" type="prismatic">
+      <origin xyz="-0.96975 0 0.09600" rpy="0 0 0"/>
       <parent link="${tf_prefix}vention_rail_base_link"/>
       <child link="${tf_prefix}vention_rail_carriage"/>
-      <limit effort="1000" velocity="${velocity_limit}" lower="0" upper="${position_limit}"/>
+      <limit lower="0" upper="${position_limit}" effort="1000" velocity="${velocity_limit}"/>
     </joint>
 
+    <link name="${tf_prefix}vention_rail_gearbox">
+      <visual>
+        <geometry>
+          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_gearbox.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0.013 0 0.017875" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.12310 0.08600 0.13735"/>
+        </geometry>
+      </collision>   
+    </link>
+
+    <joint name="vention_rail_base_to_gearbox" type="fixed">
+      <origin xyz="-1.3308 0 0.05455" rpy="0 0 0"/>
+      <parent link="${tf_prefix}vention_rail_base_link"/>
+      <child link="${tf_prefix}vention_rail_gearbox"/>
+    </joint>
+
+    <link name="vention_rail_motor">
+      <visual>
+        <geometry>
+          <box size="0.086 0.086 0.226"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.086 0.086 0.226"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="vention_rail_gearbox_to_motor" type="fixed">
+      <origin xyz="-0.00555 0 0.19955" rpy="0 0 0"/>
+      <parent link="${tf_prefix}vention_rail_gearbox"/>
+      <child link="${tf_prefix}vention_rail_motor"/>
+    </joint>
 
     <xacro:include filename="$(find vention_rail_description)/urdf/vention_rail.ros2_control.xacro" />
     <xacro:vention_rail_ros2_control

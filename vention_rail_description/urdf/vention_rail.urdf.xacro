@@ -11,15 +11,21 @@
   <xacro:arg name="velocity_limit" default="0.15" />
   <xacro:arg name="acceleration_limit" default="1.0" />
 
+  <link name="world"/>
+
   <xacro:include filename="$(find vention_rail_description)/urdf/vention_macro.urdf.xacro"/>
   <xacro:vention_rail
     name="$(arg name)"
     tf_prefix="$(arg tf_prefix)"
+    parent="world"
     use_fake_hardware="$(arg use_fake_hardware)"
     ip_addr="$(arg ip_addr)"
     port="$(arg port)"
     position_limit="$(arg position_limit)"
     velocity_limit="$(arg velocity_limit)"
-    acceleration_limit="$(arg acceleration_limit)"/>
+    acceleration_limit="$(arg acceleration_limit)"
+  >
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:vention_rail>
 
 </robot>
