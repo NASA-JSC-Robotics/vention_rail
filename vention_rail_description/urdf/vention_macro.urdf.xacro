@@ -24,7 +24,7 @@
       <visual>
         <origin xyz="0 0 0.045" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_live_body.dae"/>
+          <mesh filename="package://vention_rail_description/meshes/visual/rail_des_live_body.dae"/>
         </geometry>
       </visual>
       <collision>
@@ -38,7 +38,7 @@
     <link name="${tf_prefix}vention_rail_carriage">
       <visual>
         <geometry>
-          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_live_carriage.dae"/>
+          <mesh filename="package://vention_rail_description/meshes/visual/rail_des_live_carriage.dae"/>
         </geometry>
       </visual>
       <collision>
@@ -59,7 +59,7 @@
     <link name="${tf_prefix}vention_rail_gearbox">
       <visual>
         <geometry>
-          <mesh filename="file://$(find vention_rail_description)/meshes/rail_des_gearbox.dae"/>
+          <mesh filename="package://vention_rail_description/meshes/visual/rail_des_gearbox.dae"/>
         </geometry>
       </visual>
       <collision>
