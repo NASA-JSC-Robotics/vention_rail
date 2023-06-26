@@ -95,6 +95,49 @@
       <child link="${tf_prefix}vention_rail_motor"/>
     </joint>
 
+    <link name="vention_rail_cable_0">
+      <visual>
+        <geometry>
+          <cylinder radius="0.015" length="0.075"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="vention_motor_to_cable_0" type="fixed">
+      <origin xyz="0.0231 -0.0805 0.098" rpy="${radians(90)} 0 0"/>
+      <parent link="vention_rail_motor"/>
+      <child link="vention_rail_cable_0"/>
+    </joint>
+    
+    <link name="vention_rail_cable_1">
+      <visual>
+        <geometry>
+          <cylinder radius="0.015" length="0.075"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="vention_motor_to_cable_1" type="fixed">
+      <origin xyz="-0.0231 -0.0805 0.098" rpy="${radians(90)} 0 0"/>
+      <parent link="vention_rail_motor"/>
+      <child link="vention_rail_cable_1"/>
+    </joint>
+
+    <link name="vention_rail_cable_collision">
+      <collision>
+        <geometry>
+          <box size="0.0762 0.2286 0.0762"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="vention_motor_to_cable_collision" type="fixed">
+      <origin xyz="0 -0.1573 0.0749" rpy="0 0 0"/>
+      <parent link="vention_rail_motor"/>
+      <child link="vention_rail_cable_collision"/>
+    </joint>
+
+
     <xacro:include filename="$(find vention_rail_description)/urdf/vention_rail.ros2_control.xacro" />
     <xacro:vention_rail_ros2_control
       name="${name}"
