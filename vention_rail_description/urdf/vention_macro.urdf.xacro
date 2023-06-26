@@ -49,7 +49,7 @@
       </collision>
     </link>
 
-    <joint name="vention_rail_base_to_carriage" type="prismatic">
+    <joint name="${tf_prefix}vention_rail_base_to_carriage" type="prismatic">
       <origin xyz="-0.96975 0 0.09600" rpy="0 0 0"/>
       <parent link="${tf_prefix}vention_rail_base_link"/>
       <child link="${tf_prefix}vention_rail_carriage"/>
@@ -70,13 +70,13 @@
       </collision>   
     </link>
 
-    <joint name="vention_rail_base_to_gearbox" type="fixed">
+    <joint name="${tf_prefix}vention_rail_base_to_gearbox" type="fixed">
       <origin xyz="-1.3308 0 0.05455" rpy="0 0 0"/>
       <parent link="${tf_prefix}vention_rail_base_link"/>
       <child link="${tf_prefix}vention_rail_gearbox"/>
     </joint>
 
-    <link name="vention_rail_motor">
+    <link name="${tf_prefix}vention_rail_motor">
       <visual>
         <geometry>
           <box size="0.086 0.086 0.226"/>
@@ -89,13 +89,13 @@
       </collision>
     </link>
 
-    <joint name="vention_rail_gearbox_to_motor" type="fixed">
+    <joint name="${tf_prefix}vention_rail_gearbox_to_motor" type="fixed">
       <origin xyz="-0.00555 0 0.19955" rpy="0 0 0"/>
       <parent link="${tf_prefix}vention_rail_gearbox"/>
       <child link="${tf_prefix}vention_rail_motor"/>
     </joint>
 
-    <link name="vention_rail_cable_0">
+    <link name="${tf_prefix}vention_rail_cable_0">
       <visual>
         <geometry>
           <cylinder radius="0.015" length="0.075"/>
@@ -103,13 +103,13 @@
       </visual>
     </link>
 
-    <joint name="vention_motor_to_cable_0" type="fixed">
+    <joint name="${tf_prefix}vention_motor_to_cable_0" type="fixed">
       <origin xyz="0.0231 -0.0805 0.098" rpy="${radians(90)} 0 0"/>
-      <parent link="vention_rail_motor"/>
-      <child link="vention_rail_cable_0"/>
+      <parent link="${tf_prefix}vention_rail_motor"/>
+      <child link="${tf_prefix}vention_rail_cable_0"/>
     </joint>
     
-    <link name="vention_rail_cable_1">
+    <link name="${tf_prefix}vention_rail_cable_1">
       <visual>
         <geometry>
           <cylinder radius="0.015" length="0.075"/>
@@ -117,13 +117,13 @@
       </visual>
     </link>
 
-    <joint name="vention_motor_to_cable_1" type="fixed">
+    <joint name="${tf_prefix}vention_motor_to_cable_1" type="fixed">
       <origin xyz="-0.0231 -0.0805 0.098" rpy="${radians(90)} 0 0"/>
-      <parent link="vention_rail_motor"/>
-      <child link="vention_rail_cable_1"/>
+      <parent link="${tf_prefix}vention_rail_motor"/>
+      <child link="${tf_prefix}vention_rail_cable_1"/>
     </joint>
 
-    <link name="vention_rail_cable_collision">
+    <link name="${tf_prefix}vention_rail_cable_collision">
       <collision>
         <geometry>
           <box size="0.0762 0.2286 0.0762"/>
@@ -131,10 +131,10 @@
       </collision>
     </link>
 
-    <joint name="vention_motor_to_cable_collision" type="fixed">
+    <joint name="${tf_prefix}vention_motor_to_cable_collision" type="fixed">
       <origin xyz="0 -0.1573 0.0749" rpy="0 0 0"/>
-      <parent link="vention_rail_motor"/>
-      <child link="vention_rail_cable_collision"/>
+      <parent link="${tf_prefix}vention_rail_motor"/>
+      <child link="${tf_prefix}vention_rail_cable_collision"/>
     </joint>
 
 
