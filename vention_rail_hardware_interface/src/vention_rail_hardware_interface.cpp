@@ -242,7 +242,6 @@ namespace vention_rail_hardware_interface
     void RailEHardwareInterface::com_thread(){
         auto last_time = std::chrono::steady_clock::now();
         auto curr_time = std::chrono::steady_clock::now();
-        int counter = 0;
         while(run_){
             // get period of cycle for velocity calculation
             last_time = curr_time;
@@ -280,6 +279,9 @@ namespace vention_rail_hardware_interface
             double unclamped_vel_cmd_pid = pid_.computeCommand(position_cmd_ - hw_states_positions_[0], dt_com);
             double velocity_cmd = std::clamp(unclamped_vel_cmd_pid, -velocity_limit, velocity_limit);
 
+            // clamp absolute value of velocity so it doesn't oscillate around the setpoint by a single tick
+            if (abs(velocity_cmd) < 0.005) velocity_cmd = 0.0; 
+            
             // write to rail
             string vel_cmd_str = create_velocity_command(velocity_cmd);
             string response = sendHTTPMessage(vel_cmd_str, sockfd_);
@@ -297,7 +299,6 @@ namespace vention_rail_hardware_interface
             {
                 reset_estop();
             }
-            counter++;
         }
         // once thread is over, 
         sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
