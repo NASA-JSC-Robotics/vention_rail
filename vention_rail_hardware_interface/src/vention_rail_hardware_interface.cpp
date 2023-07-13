@@ -260,7 +260,7 @@ namespace vention_rail_hardware_interface
             else {
                 const double parsed_position = parse_position_string(pos_str);
                 // check to see if we were able to correctly parse the position
-                if (parsed_position != std::numeric_limits<double>::quiet_NaN())
+                if (!isnan(parsed_position))
                 {
                     // update position and velocities
                     curr_position_ = parsed_position;
