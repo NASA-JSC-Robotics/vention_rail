@@ -177,12 +177,6 @@ namespace vention_rail_hardware_interface
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Button pressed! Homing the rail");
             }
-            // for debugging purposes
-            else{
-                RCLCPP_INFO(
-                    rclcpp::get_logger("RailEHardwareInterface"),
-                    "is_safe_string: %s", is_safe_string.c_str());
-            }
         }
         // close the serial port because we don't need it anymore
         serial.close();
