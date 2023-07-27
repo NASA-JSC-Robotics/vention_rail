@@ -12,7 +12,7 @@
     position_limit:=2.0
     velocity_limit:=0.15
     acceleration_limit:=1.0
-    safety_com_port:=/dev/safety_com_port
+    safety_com_port:=/dev/ttyACM0
     *origin">
 
     <joint name="${tf_prefix}vention_rail_base_joint" type="fixed">

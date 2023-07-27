@@ -83,7 +83,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "safety_com_port",
-            default_value="/dev/safety_com_port",
+            default_value="/dev/ttyACM0",
             description="comport that the safety switch is being connected to",
         )
     )

@@ -10,7 +10,7 @@
   <xacro:arg name="position_limit" default="2.0" />
   <xacro:arg name="velocity_limit" default="0.15" />
   <xacro:arg name="acceleration_limit" default="1.0" />
-  <xacro:arg name="safety_com_port" default="/dev/safety_com_port" />
+  <xacro:arg name="safety_com_port" default="/dev/ttyACM0" />
 
   <link name="world"/>
 
