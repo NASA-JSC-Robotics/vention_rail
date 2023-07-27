@@ -59,6 +59,7 @@ ament_target_dependencies(
   rcpputils
   rcutils
   control_toolbox
+  serial
 )
 
 
@@ -108,6 +109,7 @@ ament_export_dependencies(
   rclcpp_lifecycle
   rcpputils
   rcutils
+  serial
 )
 
 ament_package()

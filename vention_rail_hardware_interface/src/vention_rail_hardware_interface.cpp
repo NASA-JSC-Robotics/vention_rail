@@ -83,7 +83,7 @@ namespace vention_rail_hardware_interface
         run_ = false;
         com_thread_.join();
         close_connection_to_rail(sockfd_);
-        RCLCPP_I    NFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
+        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
         return CallbackReturn::SUCCESS;
     }
 
@@ -136,7 +136,7 @@ namespace vention_rail_hardware_interface
         if (!serial.available()){
             RCLCPP_FATAL(
                     rclcpp::get_logger("RailEHardwareInterface"),
-                    "Failed to open safety comport Is the safety serial port available on %s?", safety_com_port);
+                    "Failed to open safety comport Is the safety serial port available on %s?", safety_com_port.c_str());
                 return CallbackReturn::ERROR;
         }
         bool is_safe = false;
@@ -327,6 +327,18 @@ namespace vention_rail_hardware_interface
         serial.setPort(safety_com_port);
         serial.setBaudrate(9600);
         serial.setTimeout(timeout);
+
+        try{
+            serial.open();
+            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport open!");
+            return true;
+        }
+        catch (serial::IOException e){
+            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport - serial::IOException: %s", e.what());
+            return false;
+        }
+
+        return true;
     }
 }
 
