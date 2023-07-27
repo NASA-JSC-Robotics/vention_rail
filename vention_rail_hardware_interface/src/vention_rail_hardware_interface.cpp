@@ -22,6 +22,9 @@ const double Ki_min = 0.0;
 const double Ki_max = 0.0;
 const bool antiwindup = true;
 
+const std::string pressed = "113";
+const std::string unpressed = "86";
+
 using namespace std;
 
 namespace vention_rail_hardware_interface
@@ -59,7 +62,7 @@ namespace vention_rail_hardware_interface
         position_limit = stof(system_info.hardware_parameters["position_limit"]);
         velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]);
         acceleration_limit = stof(system_info.hardware_parameters["acceleration_limit"]);
-        safety_com_port = stof(system_info.hardware_parameters["safety_com_port"]);
+        safety_com_port = system_info.hardware_parameters["safety_com_port"];
         return CallbackReturn::SUCCESS;
     }
 
@@ -132,19 +135,31 @@ namespace vention_rail_hardware_interface
             hw_commands_positions_[i] = 0;
         }
 
-        open_serial_port();
-        if (!serial.available()){
+        
+        if (!open_serial_port()){
+            serial.close();
             RCLCPP_FATAL(
                     rclcpp::get_logger("RailEHardwareInterface"),
-                    "Failed to open safety comport Is the safety serial port available on %s?", safety_com_port.c_str());
+                    "Failed to open safety comport. Is the safety serial port available on %s?", safety_com_port.c_str());
                 return CallbackReturn::ERROR;
         }
         bool is_safe = false;
         RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
         while(!is_safe){
-            auto is_safe_string = serial.read();
-            is_safe = (is_safe_string == "1"); // serial reads 0 if button not pressed, or 1 if pressed
+            static int counter = 0;
+            serial.flush();
+            auto is_safe_string = serial.readline();
+            is_safe = (is_safe_string.find(pressed) != std::string::npos); // if 113 is in the read serial message
+            if (++counter % 8 == 0){
+                RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
+            }
+            if (is_safe) {
+                RCLCPP_INFO(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Button pressed! Homing the rail");
+            }
         }
+        serial.close();
 
         // Trying to instantiate the driver
         try
@@ -330,7 +345,7 @@ namespace vention_rail_hardware_interface
 
         try{
             serial.open();
-            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport open!");
+            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport open at %s", safety_com_port.c_str());
             return true;
         }
         catch (serial::IOException e){

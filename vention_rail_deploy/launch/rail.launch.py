@@ -84,7 +84,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "safety_com_port",
             default_value="/dev/safety_com_port",
-            description="Maximium velocity in meters/s for the rail",
+            description="comport that the safety switch is being connected to",
         )
     )
 
