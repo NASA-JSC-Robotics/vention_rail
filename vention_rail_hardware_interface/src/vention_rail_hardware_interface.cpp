@@ -143,22 +143,48 @@ namespace vention_rail_hardware_interface
                     "Failed to open safety comport. Is the safety serial port available on %s?", safety_com_port.c_str());
                 return CallbackReturn::ERROR;
         }
+
+        // flush the buffers
+        serial.flush();
+        // flush them again a different way because apparently I can't get this to work
+        while(serial.available() > 0) {
+            std::string s = serial.read();
+        }
+
         bool is_safe = false;
-        RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
         while(!is_safe){
+            // keep track of how many times we are going so we can print to the user every n times
+            // at the moment, the arduino is checking for polls every 250ms, so this will print every
+            // 2 seconds
+            const int print_every_n_polls = 8;
             static int counter = 0;
-            serial.flush();
+
+            // ask for status of the button
+            serial.write("poll");
+
+            // read the button status, vars pressed and unpressed correspond to the nums that will be sent
             auto is_safe_string = serial.readline();
             is_safe = (is_safe_string.find(pressed) != std::string::npos); // if 113 is in the read serial message
-            if (++counter % 8 == 0){
+            
+            // every n polls, remind the person to press the button
+            if (counter++ % print_every_n_polls == 0){
                 RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
             }
+            
+            // let the user know that the rail is homing
             if (is_safe) {
                 RCLCPP_INFO(
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Button pressed! Homing the rail");
             }
+            // for debugging purposes
+            else{
+                RCLCPP_INFO(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "is_safe_string: %s", is_safe_string.c_str());
+            }
         }
+        // close the serial port because we don't need it anymore
         serial.close();
 
         // Trying to instantiate the driver
@@ -345,11 +371,11 @@ namespace vention_rail_hardware_interface
 
         try{
             serial.open();
-            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport open at %s", safety_com_port.c_str());
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Safety comport open at %s", safety_com_port.c_str());
             return true;
         }
         catch (serial::IOException e){
-            RCLCPP_INFO(rclcpp::get_logger("LiftkitHardwareInterface"), "Safety comport - serial::IOException: %s", e.what());
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Safety comport - serial::IOException: %s", e.what());
             return false;
         }
 
