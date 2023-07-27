@@ -8,7 +8,8 @@
     port:=9999
     position_limit:=2.0
     velocity_limit:=0.15
-    acceleration_limit:=1.0">
+    acceleration_limit:=1.0
+    safety_com_port:=/dev/safety_com_port">
         <xacro:unless value="${use_fake_hardware}">
             <ros2_control name="${name}" type="actuator">
                 <hardware>
@@ -19,6 +20,7 @@
                     <param name="position_limit">${position_limit}</param>
                     <param name="velocity_limit">${velocity_limit}</param>
                     <param name="acceleration_limit">${acceleration_limit}</param>
+                    <param name="safety_com_port">${safety_com_port}</param>
                 </hardware>
                 <joint name="${tf_prefix}vention_rail_base_to_carriage">
                     <command_interface name="position">

@@ -13,8 +13,8 @@
 #include "rclcpp/time.hpp"
 #include "visibility_control.h"
 #include "control_toolbox/pid.hpp"
+#include "serial/serial.h"
 #include <atomic>
-
 
 
 
@@ -54,6 +54,8 @@ namespace vention_rail_hardware_interface
 
         VENTION_RAIL_HARDWARE_INTERFACE_PUBLIC
         hardware_interface::return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+        bool open_serial_port();
     
     protected:
         std::vector<double> hw_states_positions_;
@@ -67,6 +69,9 @@ namespace vention_rail_hardware_interface
         int sockfd_; // communication socket for the vention system
         std::string ip_addr; // ip address of the rail
         int port; // port for connecting to the rail
+        std::string safety_com_port; // port for connecting to the rail
+
+        serial::Serial serial;
 
         double position_limit; // maximum position for the rail
         double velocity_limit; // max absolute velocity allowed

@@ -59,6 +59,7 @@ namespace vention_rail_hardware_interface
         position_limit = stof(system_info.hardware_parameters["position_limit"]);
         velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]);
         acceleration_limit = stof(system_info.hardware_parameters["acceleration_limit"]);
+        safety_com_port = stof(system_info.hardware_parameters["safety_com_port"]);
         return CallbackReturn::SUCCESS;
     }
 
@@ -82,7 +83,7 @@ namespace vention_rail_hardware_interface
         run_ = false;
         com_thread_.join();
         close_connection_to_rail(sockfd_);
-        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
+        RCLCPP_I    NFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully cleanup!");
         return CallbackReturn::SUCCESS;
     }
 
@@ -129,6 +130,20 @@ namespace vention_rail_hardware_interface
         for (unsigned int i = 0; i < hw_commands_positions_.size(); ++i)
         {
             hw_commands_positions_[i] = 0;
+        }
+
+        open_serial_port();
+        if (!serial.available()){
+            RCLCPP_FATAL(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Failed to open safety comport Is the safety serial port available on %s?", safety_com_port);
+                return CallbackReturn::ERROR;
+        }
+        bool is_safe = false;
+        RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
+        while(!is_safe){
+            auto is_safe_string = serial.read();
+            is_safe = (is_safe_string == "1"); // serial reads 0 if button not pressed, or 1 if pressed
         }
 
         // Trying to instantiate the driver
@@ -304,6 +319,14 @@ namespace vention_rail_hardware_interface
         sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
         close_connection_to_rail(sockfd_);
         com_closed_ = true;
+    }
+
+    bool RailEHardwareInterface::open_serial_port(){
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(1000);
+
+        serial.setPort(safety_com_port);
+        serial.setBaudrate(9600);
+        serial.setTimeout(timeout);
     }
 }
 
