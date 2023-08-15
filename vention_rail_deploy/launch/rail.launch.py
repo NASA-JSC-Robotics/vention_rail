@@ -80,6 +80,13 @@ def generate_launch_description():
             description="Maximium velocity in meters/s for the rail",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "safety_com_port",
+            default_value="/dev/ttyACM0",
+            description="comport that the safety switch is being connected to",
+        )
+    )
 
     # other args
     declared_arguments.append(
@@ -98,6 +105,7 @@ def generate_launch_description():
     position_limit = LaunchConfiguration("position_limit")
     velocity_limit = LaunchConfiguration("velocity_limit")
     acceleration_limit = LaunchConfiguration("acceleration_limit")
+    safety_com_port = LaunchConfiguration("safety_com_port")
 
     robot_description_content = Command(
         [
@@ -128,6 +136,9 @@ def generate_launch_description():
             " ",
             "acceleration_limit:=",
             acceleration_limit,
+            " ",
+            "safety_com_port:=",
+            safety_com_port,
             " ",
         ]
     )

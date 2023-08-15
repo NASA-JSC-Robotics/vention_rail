@@ -19,6 +19,7 @@
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend>serial</depend>
 
   <build_depend>rcutils</build_depend>
   <exec_depend>rcutils</exec_depend>

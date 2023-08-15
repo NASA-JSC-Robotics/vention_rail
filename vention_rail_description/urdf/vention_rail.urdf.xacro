@@ -10,6 +10,7 @@
   <xacro:arg name="position_limit" default="2.0" />
   <xacro:arg name="velocity_limit" default="0.15" />
   <xacro:arg name="acceleration_limit" default="1.0" />
+  <xacro:arg name="safety_com_port" default="/dev/ttyACM0" />
 
   <link name="world"/>
 
@@ -24,6 +25,7 @@
     position_limit="$(arg position_limit)"
     velocity_limit="$(arg velocity_limit)"
     acceleration_limit="$(arg acceleration_limit)"
+    safety_com_port="$(arg safety_com_port)"
   >
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:vention_rail>

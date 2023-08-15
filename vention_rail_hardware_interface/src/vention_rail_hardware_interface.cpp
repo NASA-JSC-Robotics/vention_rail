@@ -22,6 +22,9 @@ const double Ki_min = 0.0;
 const double Ki_max = 0.0;
 const bool antiwindup = true;
 
+const std::string pressed = "113";
+const std::string unpressed = "86";
+
 using namespace std;
 
 namespace vention_rail_hardware_interface
@@ -59,6 +62,7 @@ namespace vention_rail_hardware_interface
         position_limit = stof(system_info.hardware_parameters["position_limit"]);
         velocity_limit = stof(system_info.hardware_parameters["velocity_limit"]);
         acceleration_limit = stof(system_info.hardware_parameters["acceleration_limit"]);
+        safety_com_port = system_info.hardware_parameters["safety_com_port"];
         return CallbackReturn::SUCCESS;
     }
 
@@ -130,6 +134,52 @@ namespace vention_rail_hardware_interface
         {
             hw_commands_positions_[i] = 0;
         }
+
+        
+        if (!open_serial_port()){
+            serial.close();
+            RCLCPP_FATAL(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Failed to open safety comport. Is the safety serial port available on %s?", safety_com_port.c_str());
+                return CallbackReturn::ERROR;
+        }
+
+        // flush the buffers
+        serial.flush();
+        // flush them again a different way because apparently I can't get this to work
+        while(serial.available() > 0) {
+            std::string s = serial.read();
+        }
+
+        bool is_safe = false;
+        while(!is_safe){
+            // keep track of how many times we are going so we can print to the user every n times
+            // at the moment, the arduino is checking for polls every 250ms, so this will print every
+            // 2 seconds
+            const int print_every_n_polls = 8;
+            static int counter = 0;
+
+            // ask for status of the button
+            serial.write("poll");
+
+            // read the button status, vars pressed and unpressed correspond to the nums that will be sent
+            auto is_safe_string = serial.readline();
+            is_safe = (is_safe_string.find(pressed) != std::string::npos); // if 113 is in the read serial message
+            
+            // every n polls, remind the person to press the button
+            if (counter++ % print_every_n_polls == 0){
+                RCLCPP_WARN(rclcpp::get_logger("RailEHardwareInterface"),"PLEASE PRESS THE SAFETY BUTTON TO START HOMING");
+            }
+            
+            // let the user know that the rail is homing
+            if (is_safe) {
+                RCLCPP_INFO(
+                    rclcpp::get_logger("RailEHardwareInterface"),
+                    "Button pressed! Homing the rail");
+            }
+        }
+        // close the serial port because we don't need it anymore
+        serial.close();
 
         // Trying to instantiate the driver
         try
@@ -260,7 +310,7 @@ namespace vention_rail_hardware_interface
             else {
                 const double parsed_position = parse_position_string(pos_str);
                 // check to see if we were able to correctly parse the position
-                if (parsed_position != std::numeric_limits<double>::quiet_NaN())
+                if (!isnan(parsed_position))
                 {
                     // update position and velocities
                     curr_position_ = parsed_position;
@@ -304,6 +354,26 @@ namespace vention_rail_hardware_interface
         sendHTTPMessage(create_stop_all_motion_command(), sockfd_);
         close_connection_to_rail(sockfd_);
         com_closed_ = true;
+    }
+
+    bool RailEHardwareInterface::open_serial_port(){
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(1000);
+
+        serial.setPort(safety_com_port);
+        serial.setBaudrate(9600);
+        serial.setTimeout(timeout);
+
+        try{
+            serial.open();
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Safety comport open at %s", safety_com_port.c_str());
+            return true;
+        }
+        catch (serial::IOException e){
+            RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Safety comport - serial::IOException: %s", e.what());
+            return false;
+        }
+
+        return true;
     }
 }
 
