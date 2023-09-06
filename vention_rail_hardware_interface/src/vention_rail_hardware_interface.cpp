@@ -69,6 +69,7 @@ namespace vention_rail_hardware_interface
     CallbackReturn RailEHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
     {
         sockfd_ = connect_to_rail(ip_addr, port, 50.0);
+        RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"), "Successfully configure!");
         com_closed_ = false;
         // Make sure we are not moving
         string stop_all_motion_str = sendHTTPMessage(create_stop_all_motion_command(), sockfd_);

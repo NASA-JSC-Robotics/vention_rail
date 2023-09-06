@@ -6,7 +6,7 @@
   <xacro:arg name="tf_prefix" default="" />
   <xacro:arg name="use_fake_hardware" default="false" />
   <xacro:arg name="ip_addr" default="192.168.7.2" />
-  <xacro:arg name="port" default="8000" />
+  <xacro:arg name="port" default="9999" />
   <xacro:arg name="position_limit" default="2.0" />
   <xacro:arg name="velocity_limit" default="0.15" />
   <xacro:arg name="acceleration_limit" default="1.0" />
