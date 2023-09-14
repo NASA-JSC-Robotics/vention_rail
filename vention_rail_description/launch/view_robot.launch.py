@@ -41,7 +41,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "port",
-            default_value="8000",
+            default_value="9999",
             description="Port number for Vention Rail",
         )
     )

@@ -5,7 +5,7 @@
   <xacro:arg name="name" default="vention_rail"/>
   <xacro:arg name="tf_prefix" default="" />
   <xacro:arg name="use_fake_hardware" default="false" />
-  <xacro:arg name="ip_addr" default="192.168.1.104" />
+  <xacro:arg name="ip_addr" default="192.168.7.2" />
   <xacro:arg name="port" default="9999" />
   <xacro:arg name="position_limit" default="2.0" />
   <xacro:arg name="velocity_limit" default="0.15" />

@@ -48,7 +48,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "ip_addr",
-            default_value="192.168.1.104",
+            default_value="192.168.7.2",
             description="IP Address for Vention Rail",
         )
     )
