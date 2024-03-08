@@ -25,7 +25,7 @@ def generate_launch_description():
                    "--controller-manager-timeout","100",
                    "-c", "controller_manager",
                    "-t", "joint_trajectory_controller/JointTrajectoryController",
-                   "-p", controller_params_file],
+                ],
     )
     estop_controller_spawner = Node(
         package="controller_manager",
@@ -34,7 +34,7 @@ def generate_launch_description():
                    "--controller-manager-timeout","100",
                    "-c", "controller_manager",
                    "-t", "vention_rail_controllers/EstopController ",
-                   "-p", controller_params_file],
+                ],
         condition=UnlessCondition(use_fake_hardware)
     )    
     rail_controller_stopper = Node(
