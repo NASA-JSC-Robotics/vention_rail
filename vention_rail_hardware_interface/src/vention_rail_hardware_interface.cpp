@@ -333,9 +333,22 @@ namespace vention_rail_hardware_interface
             // clamp absolute value of velocity so it doesn't oscillate around the setpoint by a single tick
             if (abs(velocity_cmd) < 0.005) velocity_cmd = 0.0; 
             
-            // write to rail
-            string vel_cmd_str = create_velocity_command(velocity_cmd);
-            string response = sendHTTPMessage(vel_cmd_str, sockfd_);
+            // write desired velocity to rail if not estopped
+            if (estop_status_str.find("true") == string::npos)
+            {
+                string vel_cmd_str = create_velocity_command(velocity_cmd);
+                string response = sendHTTPMessage(vel_cmd_str, sockfd_);
+                RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"vel_cmd: %0.3f", velocity_cmd);
+            }
+            // if estop detected. command a 0 velocity before the stop motion command so that this is saved after
+            // estop is over. Somehow, it still commands some residual velocity even though none is commanded after
+            else{
+                string vel_cmd_str = create_velocity_command(0.0);
+                string response = sendHTTPMessage(vel_cmd_str, sockfd_);
+                RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"vel_cmd: %0.3f", 0.0);
+            }
+
+
 
             // if we received an error, stop the rail. It is probably in estop state. Also command the current position
             if (estop_status_str.find("true") != string::npos)
@@ -344,7 +357,9 @@ namespace vention_rail_hardware_interface
                 RCLCPP_FATAL(
                     rclcpp::get_logger("RailEHardwareInterface"),
                     "Error sending velocity command, Check E-Stop Status!");
+                // update all desired positions available to the current position
                 hw_commands_positions_[0] = hw_states_positions_[0];
+                position_cmd_ = hw_states_positions_[0];
             }
             else if (is_stopped())
             {

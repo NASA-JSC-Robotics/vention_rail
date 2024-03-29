@@ -29,6 +29,11 @@ rail_position_trajectory_controller:
     allow_partial_joints_goal: false
     open_loop_control: false
 
+    constraints:
+      stopped_velocity_tolerance: 0.2
+      goal_time: 0.0
+      vention_rail_base_to_carriage: { trajectory: 0.1, goal: 0.1 }
+
 rail_estop_controller:
   ros__parameters:
     state_publish_rate: 100.0
