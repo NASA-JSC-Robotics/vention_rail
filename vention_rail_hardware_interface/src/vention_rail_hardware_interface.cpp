@@ -338,14 +338,12 @@ namespace vention_rail_hardware_interface
             {
                 string vel_cmd_str = create_velocity_command(velocity_cmd);
                 string response = sendHTTPMessage(vel_cmd_str, sockfd_);
-                RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"vel_cmd: %0.3f", velocity_cmd);
             }
             // if estop detected. command a 0 velocity before the stop motion command so that this is saved after
             // estop is over. Somehow, it still commands some residual velocity even though none is commanded after
             else{
                 string vel_cmd_str = create_velocity_command(0.0);
                 string response = sendHTTPMessage(vel_cmd_str, sockfd_);
-                RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),"vel_cmd: %0.3f", 0.0);
             }
 
 
