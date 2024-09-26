@@ -82,6 +82,10 @@ namespace vention_rail_hardware_interface
         std::atomic<double> position_cmd_; // thread-safe position setpoint
         std::thread com_thread_; // thread which performs read and write as fast as possible
 
+        bool hard_estopped = false; // variable to track if the hardware returned an estop condition
+        bool soft_estopped = false; // variable to make sure we can come out of estop after an event
+        double soft_estop_tolerance = 0.01; // difference between desired and actual position to allow us out of an estop
+
         control_toolbox::Pid pid_; // pid controller to 
 
         /// function which performs the reading and writing
