@@ -1,8 +1,7 @@
 #include "vention_rail_hardware_interface/vention_rail_cxx_api.hpp"
 
 using namespace std;
-int main()
-{
+int main() {
 
   int sockfd = connect_to_rail();
   string homing_cmd_str = create_homing_command();

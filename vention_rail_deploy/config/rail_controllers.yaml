@@ -9,7 +9,7 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
     rail_estop_controller:
-      type: vention_rail_controllers/EstopController 
+      type: vention_rail_controllers/EstopController
 
 rail_position_trajectory_controller:
   ros__parameters:

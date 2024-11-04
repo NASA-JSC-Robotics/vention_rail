@@ -3,7 +3,8 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
+
 
 def generate_launch_description():
     declared_arguments = []
@@ -49,14 +50,14 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "position_limit",
             default_value="2.0",
-            description="Maximium position in meters for the rail",
+            description="Maximum position in meters for the rail",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "velocity_limit",
             default_value="0.5",
-            description="Maximium velocity in meters/s for the rail",
+            description="Maximum velocity in meters/s for the rail",
         )
     )
 
@@ -64,7 +65,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "rviz",
-            default_value='true',
+            default_value="true",
             description="launch rviz",
         )
     )
@@ -82,7 +83,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution([FindPackageShare("vention_rail_description"), "urdf", "vention_rail.urdf.xacro"]),
-            " ", 
+            " ",
             "name:=",
             robot_name,
             " ",
@@ -108,21 +109,18 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("vention_rail_description"), "rviz", "view_robot.rviz"]
-    )
+    rviz_config_file = PathJoinSubstitution([FindPackageShare("vention_rail_description"), "rviz", "view_robot.rviz"])
 
     joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
     )
-   
+
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[
-            robot_description],
+        parameters=[robot_description],
     )
 
     rviz_node = Node(
@@ -131,7 +129,7 @@ def generate_launch_description():
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config_file],
-        condition=IfCondition(rviz)
+        condition=IfCondition(rviz),
     )
 
     nodes_to_start = [
