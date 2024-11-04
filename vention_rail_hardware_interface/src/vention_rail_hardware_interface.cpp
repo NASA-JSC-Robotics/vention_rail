@@ -403,7 +403,7 @@ bool RailEHardwareInterface::open_serial_port() {
     RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
                 "Safety comport open at %s", safety_com_port.c_str());
     return true;
-  } catch (serial::IOException e) {
+  } catch (serial::IOException &e) {
     RCLCPP_INFO(rclcpp::get_logger("RailEHardwareInterface"),
                 "Safety comport - serial::IOException: %s", e.what());
     return false;
