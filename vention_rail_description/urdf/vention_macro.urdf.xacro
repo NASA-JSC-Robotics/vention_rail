@@ -68,7 +68,7 @@
         <geometry>
           <box size="0.12310 0.08600 0.13735"/>
         </geometry>
-      </collision>   
+      </collision>
     </link>
 
     <joint name="${tf_prefix}vention_rail_base_to_gearbox" type="fixed">
@@ -109,7 +109,7 @@
       <parent link="${tf_prefix}vention_rail_motor"/>
       <child link="${tf_prefix}vention_rail_cable_0"/>
     </joint>
-    
+
     <link name="${tf_prefix}vention_rail_cable_1">
       <visual>
         <geometry>
