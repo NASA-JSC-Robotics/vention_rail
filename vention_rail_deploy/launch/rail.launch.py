@@ -146,14 +146,22 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    controller_params_file = os.path.join(
+    controller_common_params = os.path.join(
+        get_package_share_directory("vention_rail_deploy"), "config", "controllers_common.yaml"
+    )
+
+    controller_rail_params = os.path.join(
         get_package_share_directory("vention_rail_deploy"), "config", "rail_controllers.yaml"
     )
 
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, controller_params_file],
+        parameters=[
+            robot_description,
+            controller_common_params,
+            controller_rail_params,
+        ],
     )
 
     joint_state_broadcaster_spawner = Node(
