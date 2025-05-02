@@ -35,6 +35,10 @@
           <box size="2.4375 0.1350 0.0900"/>
         </geometry>
       </collision>
+      <inertial>
+        <mass value="38.47"/>
+        <inertia ixx="0.46604111" ixy="0.0" ixz="0.0" iyy="0.46480515" iyz="-0.002668667" izz="0.1561"/>
+      </inertial>
     </link>
 
     <link name="${tf_prefix}vention_rail_carriage">
@@ -49,6 +53,10 @@
           <box size="0.223 0.223 0.0205000"/>
         </geometry>
       </collision>
+      <inertial>
+        <mass value="2.937"/>
+        <inertia ixx="0.0125" ixy="0.0" ixz="0.0" iyy="0.0287" iyz="0.0" izz="0.0199"/>
+      </inertial>
     </link>
 
     <joint name="${tf_prefix}vention_rail_base_to_carriage" type="prismatic">
