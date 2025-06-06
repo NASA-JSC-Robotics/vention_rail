@@ -1,6 +1,7 @@
 # Vention Rail ROS 2 Drivers
 
-The Vention Rail Hardware Interface.
+ROS 2 control hardware interface for the Vention Linear Rail robot.
+Built and tested against ROS 2 humble.
 
 ## Overview
 
@@ -29,4 +30,4 @@ If the button is pressed, the arduino will send the value `113`, and light up th
 If it is not pressed, it will return `86` (number chosen so that it would require more than one bit flip to be wrong).
 The hardware interface checks whether the value returned was 113, and if it was, it moves on with the remainder of the rail configuration, including the homing.
 
-The arduino code lives [here](https://js-er-code.jsc.nasa.gov/imetro/robots/chonkur-l-rail-e/clr_safety_button/-/tree/CLR_Homing_Button?ref_type=heads).
+The arduino code is available in [Homing_Button.ino](./arduino/Homing_Button.ino).
