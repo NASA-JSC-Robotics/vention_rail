@@ -1,22 +1,23 @@
 #ifndef VENTION_RAIL_CXX_API_HPP_
 #define VENTION_RAIL_CXX_API_HPP_
 
-#include <cstring>
-#include <iostream>
 #include <math.h>
-#include <memory>
-#include <mutex>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <sstream>
+#include <string>
 
-namespace vention_rail_hardware_interface {
+namespace vention_rail_hardware_interface
+{
 /// safely exits in the case of ctrl+c events
 void signal_callback_handler(int signum);
 
@@ -71,6 +72,6 @@ std::string sendHTTPMessage(std::string message, int sockfd);
 
 std::string recvHTTPMessage(int sockfd);
 
-}; // namespace vention_rail_hardware_interface
+};  // namespace vention_rail_hardware_interface
 
-#endif // VENTION_RAIL_CXX_API_HPP_
+#endif  // VENTION_RAIL_CXX_API_HPP_
