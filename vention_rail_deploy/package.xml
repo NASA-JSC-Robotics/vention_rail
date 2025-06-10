@@ -3,9 +3,8 @@
   <name>vention_rail_deploy</name>
   <version>1.0.0</version>
   <description>The vention rail deploy package</description>
-
   <maintainer email="samuel.a.sowell@nasa.gov">Alex Sowell</maintainer>
-  <license>NASA-1.3</license>
+  <license>Apache License, Version 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
