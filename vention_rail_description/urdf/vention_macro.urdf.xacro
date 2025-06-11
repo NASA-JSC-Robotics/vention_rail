@@ -91,6 +91,9 @@
         <geometry>
           <box size="0.086 0.086 0.226"/>
         </geometry>
+        <material name="${tf_prefix}vention_rail_motor">
+          <color rgba="0.8 0.8 0.8 1"/>
+        </material>
       </visual>
       <collision>
         <geometry>
@@ -110,6 +113,9 @@
         <geometry>
           <cylinder radius="0.015" length="0.075"/>
         </geometry>
+        <material name="${tf_prefix}vention_rail_cable_0">
+          <color rgba="0.8 0.8 0.8 1"/>
+        </material>
       </visual>
     </link>
 
@@ -124,6 +130,9 @@
         <geometry>
           <cylinder radius="0.015" length="0.075"/>
         </geometry>
+        <material name="${tf_prefix}vention_rail_cable_1s">
+          <color rgba="0.8 0.8 0.8 1"/>
+        </material>
       </visual>
     </link>
 
