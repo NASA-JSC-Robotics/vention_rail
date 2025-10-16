@@ -48,8 +48,6 @@ def generate_launch_description():
             "100",
             "-c",
             "controller_manager",
-            "-t",
-            "joint_trajectory_controller/JointTrajectoryController",
         ],
     )
     estop_controller_spawner = Node(
@@ -61,8 +59,6 @@ def generate_launch_description():
             "100",
             "-c",
             "controller_manager",
-            "-t",
-            "vention_rail_controllers/EstopController ",
         ],
         condition=UnlessCondition(use_fake_hardware),
     )
