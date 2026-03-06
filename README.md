@@ -31,3 +31,21 @@ If it is not pressed, it will return `86` (number chosen so that it would requir
 The hardware interface checks whether the value returned was 113, and if it was, it moves on with the remainder of the rail configuration, including the homing.
 
 The arduino code is available in [Homing_Button.ino](./arduino/Homing_Button.ino).
+
+## Citation
+
+This project falls under the purview of the iMETRO project.
+If you use this in your own work, please cite the following paper:
+
+```bibtex
+@INPROCEEDINGS{imetro-facility-2025,
+  author={Dunkelberger, Nathan and Sheetz, Emily and Rainen, Connor and Graf, Jodi and Hart, Nikki and Zemler, Emma and Azimi, Shaun},
+  booktitle={2025 22nd International Conference on Ubiquitous Robots (UR)},
+  title={Design of the iMETRO Facility: A Platform for Intravehicular Space Robotics Research},
+  year={2025},
+  volume={},
+  number={},
+  pages={390-397},
+  keywords={NASA;Moon;Seals;Maintenance engineering;Maintenance;Robots;Standards;Open source software;Testing;Logistics},
+  doi={10.1109/UR65550.2025.11077983}}
+```
