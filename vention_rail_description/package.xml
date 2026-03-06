@@ -5,7 +5,7 @@
   <version>1.0.0</version>
   <description>Vention Rail Description Package, used for testing ROScontrol on iMETRO's enclosed ball screw linear actuator</description>
   <maintainer email="michael.e.tobia@nasa.gov">Michael Tobia</maintainer>
-  <license>Apache License, Version 2.0</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
