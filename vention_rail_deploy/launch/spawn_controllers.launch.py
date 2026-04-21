@@ -29,11 +29,19 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
+            "namespace",
+            default_value="",
+            description="Namespace for the robot.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "use_fake_hardware",
             default_value="false",
             description="Start robot with fake hardware mirroring command to its states.",
         )
     )
+    namespace = LaunchConfiguration("namespace")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
 
     # controller_params_file = os.path.join(
@@ -42,6 +50,7 @@ def generate_launch_description():
     position_trajectory_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
+        namespace=namespace,
         arguments=[
             "rail_position_trajectory_controller",
             "--controller-manager-timeout",
@@ -53,6 +62,7 @@ def generate_launch_description():
     estop_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
+        namespace=namespace,
         arguments=[
             "rail_estop_controller",
             "--controller-manager-timeout",
@@ -66,6 +76,7 @@ def generate_launch_description():
         package="vention_rail_hardware_interface",
         executable="controller_stopper_node",
         name="rail_controller_stopper_node",
+        namespace=namespace,
         parameters=[
             {
                 "consistent_controllers": [

@@ -1,35 +1,36 @@
-controller_manager:
-  ros__parameters:
+/**:
+  controller_manager:
+    ros__parameters:
 
-    rail_position_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      rail_position_trajectory_controller:
+        type: joint_trajectory_controller/JointTrajectoryController
 
-    rail_estop_controller:
-      type: vention_rail_controllers/EstopController
+      rail_estop_controller:
+        type: vention_rail_controllers/EstopController
 
-rail_position_trajectory_controller:
-  ros__parameters:
-    joints:
-      - vention_rail_base_to_carriage
+  rail_position_trajectory_controller:
+    ros__parameters:
+      joints:
+        - $(var tf_prefix)vention_rail_base_to_carriage
 
-    command_interfaces:
-      - position
+      command_interfaces:
+        - position
 
-    state_interfaces:
-      - position
-      - velocity
+      state_interfaces:
+        - position
+        - velocity
 
-    state_publish_rate: 50.0
-    action_monitor_rate: 20.0
+      state_publish_rate: 50.0
+      action_monitor_rate: 20.0
 
-    allow_partial_joints_goal: false
-    open_loop_control: false
+      allow_partial_joints_goal: false
+      open_loop_control: false
 
-    constraints:
-      stopped_velocity_tolerance: 0.2
-      goal_time: 0.0
-      vention_rail_base_to_carriage: { trajectory: 0.1, goal: 0.1 }
+      constraints:
+        stopped_velocity_tolerance: 0.2
+        goal_time: 0.0
+        $(var tf_prefix)vention_rail_base_to_carriage: { trajectory: 0.1, goal: 0.1 }
 
-rail_estop_controller:
-  ros__parameters:
-    state_publish_rate: 100.0
+  rail_estop_controller:
+    ros__parameters:
+      state_publish_rate: 100.0
